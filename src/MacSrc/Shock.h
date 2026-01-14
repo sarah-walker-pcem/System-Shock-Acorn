@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 //====================================================================================
 
-#include <SDL.h>
+//#include <SDL.h>
 
 //--------------------
 //  Function Prototypes
@@ -46,5 +46,5 @@ bool CheckArgument(char *name);
 extern bool gPlayingGame;
 
 extern grs_screen *cit_screen;
-extern SDL_Renderer *renderer;
-extern SDL_Window *window;
+extern void /*SDL_Renderer*/ *renderer;
+extern void /*SDL_Window*/ *window;

@@ -65,7 +65,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "vitals.h"
 #include "view360.h"
 
-#include "shockolate_version.h" // for system shock version number
+//#include "shockolate_version.h" // for system shock version number
+#define SHOCKOLATE_VERSION "1"
 
 #include "Modding.h"
 
@@ -774,7 +775,7 @@ errtype init_load_resources() {
         critical_error(CRITERR_RES | 9);
 
     // Go load the additional mod files
-    LoadModFiles();
+//    LoadModFiles();
 
     return (OK);
 }
@@ -845,6 +846,8 @@ void free_all(void) {
 // im going im going im going im gone
 void byebyemessage(void) {
     extern uchar cit_success;
+
+    Plat_CloseVideo();
     if (cit_success)
 #ifdef DEMO
         printf("Thanks for playing the System Shock CD Demo %s.\n", SYSTEM_SHOCK_VERSION);

@@ -17,9 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "Shock.h"
+#include "platform.h"
 #include "anim.h"
 #include "gr2ss.h"
 #include "tools.h"
@@ -75,7 +76,7 @@ void AnimRecur() {
     y = current_anim.loc.y;
     ss_bitmap(&current_anim.cnv.bm, x, y);
 
-    long time = SDL_GetTicks();
+    long time = Plat_GetTicks();
     if (time >= current_anim.timeContinue) {
         current_anim.currFrameRef++;
         current_anim.frameNum++;
@@ -119,7 +120,7 @@ ActAnim *AnimPlayRegion(Ref animRef, LGRegion *region, LGPoint loc, char unknown
     current_anim.curSeq = 0;
     current_anim.frameNum = 0;
     current_anim.composeFunc = composeFunc;
-    current_anim.timeContinue = SDL_GetTicks() + 100;
+    current_anim.timeContinue = Plat_GetTicks() + 100;
     current_anim.loc = loc;
 
     // Initialize canvas for this animation

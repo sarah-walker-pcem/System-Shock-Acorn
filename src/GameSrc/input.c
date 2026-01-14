@@ -1143,8 +1143,8 @@ uchar toggle_opengl_func(ushort keycode, uint32_t context, intptr_t data) {
 //most of original init_input() is now either commented out or done elsewhere, so do what's left here
 //and comment out original function below
 void init_input(void) {
-    uiDoubleClickDelay = 8;
-    uiDoubleClickTime = 45;
+    uiDoubleClickDelay = 8*5;
+    uiDoubleClickTime = 45*5;
     uiDoubleClicksOn[MOUSE_LBUTTON] = TRUE; // turn on left double clicks
     uiAltDoubleClick = TRUE;
 
@@ -1556,7 +1556,7 @@ void SetMotionCursorForMouseXY(void)
     if      (x < -cw) cnum = VIEW_LSIDE;
     else if (x >  cw) cnum = VIEW_RSIDE;
     else              cnum = VIEW_HCENTER;
-  
+
     if      (y < -ch) cnum |= VIEW_TOP;
     else if (y >  ch) cnum |= VIEW_BOTTOM;
     else              cnum |= VIEW_VCENTER;
@@ -1896,7 +1896,7 @@ void use_object_in_3d(ObjID obj, bool shifted) {
         del_loc_state.loc.x = -1;
         ObjRefStateBinSetNull(del_loc_state.refs[0].bin);
         ObjUpdateLocs(&del_loc_state);
-        if (objs[obj].info.ph != -1) {
+        if (objs[obj].info.ph != (char)-1) {
             EDMS_kill_object(objs[obj].info.ph);
             physics_handle_id[objs[obj].info.ph] = OBJ_NULL;
             objs[obj].info.ph = -1;
@@ -2234,13 +2234,13 @@ uchar view3d_mouse_handler(uiEvent *ev, LGRegion *r, intptr_t v) {
             ObjID id;
             frc *use_frc;
             short rabsx, rabsy;
-    
+
             use_frc = svga_render_context;
             rabsx = r->abs_x;
             rabsy = r->abs_y;
             if (!DoubleSize)
                 ss_point_convert(&rabsx, &rabsy, FALSE);
-    
+
             id = fr_get_at(use_frc, evp.x - rabsx, evp.y - rabsy, TRUE);
             if ((short)id > 0) {
                 look_at_object(id);

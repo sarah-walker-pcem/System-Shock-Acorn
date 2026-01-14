@@ -87,7 +87,7 @@ errtype init_player(Player *pplr) {
     extern uchar which_lang;
 
     LG_memcpy(tmp, pplr->name, sizeof(tmp)); // Save these so they won't be cleared.
-    tmpdiff = *(long *)pplr->difficulty;
+    tmpdiff = pplr->difficulty[0] | (pplr->difficulty[1] << 8) | (pplr->difficulty[2] << 16) | (pplr->difficulty[3] << 24); //*(long *)pplr->difficulty;
 
     // Zero out whole structure
     LG_memset(pplr, 0, sizeof(Player));

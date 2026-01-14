@@ -79,12 +79,14 @@ void flat8_flat8_smooth_h_double_ubitmap(grs_bitmap *srcb, grs_bitmap *dstb) {
     endv = srcb->h;
 
     for (v = 0; v < endv; v++) {
-        curpix = *(short *)src;
+        curpix = (ushort)src[0] | ((ushort)src[1] << 8); //*(short *)src;
         src += 2;
         for (h = 0; h < endh; h++) {
             tempshort = curpix & 0xff00;
             tempshort |= local_grd_half_blend[curpix];
-            *(ushort *)dst = tempshort;
+            //*(ushort *)dst = tempshort;
+            dst[0] = tempshort;
+            dst[1] = tempshort >> 8;
             dst += 2;
             curpix = (curpix << 8) | *(src++);
         }

@@ -1,0 +1,52 @@
+VPATH = .
+CC   = ~/gccsdk/cross/bin/arm-unknown-riscos-gcc
+CPP  = ~/gccsdk/cross/bin/arm-unknown-riscos-g++
+ELF2AIF = ~/gccsdk/cross/bin/elf2aif
+
+CFLAGS := -mcpu=arm710 -g3 -std=c99
+CXXFLAGS := -mcpu=arm710 -g3
+
+INCFLAGS = -I../../../GameSrc/Headers \
+	-I../../../Libraries/2D/Source \
+	-I../../../Libraries/3D/Source \
+	-I../../../Libraries/AFILE/Source \
+	-I../../../Libraries/DSTRUCT/Source \
+	-I../../../Libraries/EDMS/Source \
+	-I../../../Libraries/FIXPP/Source \
+	-I../../../Libraries/INPUT/Source \
+	-I../../../Libraries/PALETTE/Source \
+	-I../../../Libraries/RES/Source \
+	-I../../../Libraries/UI/Source \
+	-I../../../Libraries/RND/Source \
+	-I../../../Libraries/VOX/Source \
+	-I../../../Libraries/FIX/Source \
+	-I../../../Libraries/SND/Source \
+	-I../../../Libraries/H \
+	-I../../../Libraries/LG/Source \
+	-I../../../Libraries/LG/Source/LOG/src \
+	-I../../../MacSrc \
+	-I../../../MusicSrc \
+	-I../../../Libraries/adlmidi/include
+#
+#	-include precompiled.h
+
+OBJPALETTE = palette.o
+
+libpalette.a: $(OBJPALETTE)
+	$(AR) -r libpalette.a $(OBJPALETTE)
+
+all : libpalette.a
+
+clean :
+	rm *.o
+	rm libpalette.a
+
+%.o : %.c
+	$(CC) $(CFLAGS) $(INCFLAGS) -c $<
+
+%.o : %.cpp
+	$(CPP) $(CXXFLAGS) $(INCFLAGS) -c $<
+
+%.o : %.s
+	$(CPP) $(CXXFLAGS) -c $<
+

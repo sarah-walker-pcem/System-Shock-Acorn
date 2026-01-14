@@ -432,7 +432,7 @@ struct _nVecWork {
 #define _fixn1 (-fix_make(1, 0))
 static fix locstep[4][2] = {{_fixn1, _fixn1}, {_fixn1, _fixp1}, {_fixp1, _fixn1}, {_fixp1, _fixp1}};
 static fix edgestep[4][2] = {{0, 0}, {0, _fixp1 - 1}, {_fixp1 - 1, 0}, {_fixp1 - 1, _fixp1 - 1}};
-static char rmmod[4] = {-1, -1, 1, 1};       /* mod to rem to get to next full square */
+static int8_t rmmod[4] = {-1, -1, 1, 1};       /* mod to rem to get to next full square */
 static short new_del_mapstep[2] = {-32, 32}; /* wants to be wall_adds[2] and then wall_adds[0] */
 static MapElem *eye_mptr;
 
@@ -449,7 +449,7 @@ static MapElem *eye_mptr;
 #define MAX_CLIP_VEC 16
 static FrClipVec allclipv[MAX_CLIP_VEC];
 static FrClipVec *ccv;
-static char vechead = 0, ffreevec = 0, lastvec = -1, endvec = MAX_CLIP_VEC - 1;
+static int8_t vechead = 0, ffreevec = 0, lastvec = -1, endvec = MAX_CLIP_VEC - 1;
 
 struct _nVecWork _nVP[4] = {{0xdeadbeef, -1, -64, 3, 2, 0xdeadbeef, 0xff, nVW_NXNY},
                             {0xdeadbeef, -1, 64, 3, 0, 0xdeadbeef, 0xff, nVW_NXPY},

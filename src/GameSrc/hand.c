@@ -135,8 +135,8 @@ Ref get_handart(int *x_offset, int *y_offset, int *beam_x_offset, short mouse_x,
     case (GUN_SUBCLASS_PISTOL):
     case (GUN_SUBCLASS_AUTO):
         frame = handart_show - 1;
-        hand_x = pistol_hand_info[HANDART_NUM][frame].x;
-        hand_y = pistol_hand_info[HANDART_NUM][frame].y;
+        hand_x = (int8_t)pistol_hand_info[HANDART_NUM][frame].x;
+        hand_y = (int8_t)pistol_hand_info[HANDART_NUM][frame].y;
         break;
     case (GUN_SUBCLASS_HANDTOHAND):
         type = player_struct.weapons[player_struct.actives[ACTIVE_WEAPON]].subtype;
@@ -145,8 +145,8 @@ Ref get_handart(int *x_offset, int *y_offset, int *beam_x_offset, short mouse_x,
         if (hcount)
             frame = hcount - 1;
 #endif
-        hand_x = hand2hand_info[type][handart_show - 1].x_offset;
-        hand_y = hand2hand_info[type][handart_show - 1].y_offset;
+        hand_x = (int8_t)hand2hand_info[type][handart_show - 1].x_offset;
+        hand_y = (int8_t)hand2hand_info[type][handart_show - 1].y_offset;
 
         EDMS_get_state(objs[PLAYER_OBJ].info.ph, &new_state); // look - we have to use get_state to get velocity
         hand_x += hand_bobx;
@@ -187,8 +187,8 @@ Ref get_handart(int *x_offset, int *y_offset, int *beam_x_offset, short mouse_x,
         break;
     default:
         frame = handart_show - 1;
-        hand_x = energy_hand_info[HANDART_NUM - NUM_PROJ_GUN][frame].x;
-        hand_y = energy_hand_info[HANDART_NUM - NUM_PROJ_GUN][frame].y;
+        hand_x = (int8_t)energy_hand_info[HANDART_NUM - NUM_PROJ_GUN][frame].x;
+        hand_y = (int8_t)energy_hand_info[HANDART_NUM - NUM_PROJ_GUN][frame].y;
         break;
     }
 

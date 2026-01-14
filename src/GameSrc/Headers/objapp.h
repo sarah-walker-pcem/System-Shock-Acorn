@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJAPP_H
 #define __OBJAPP_H
 
-#pragma pack(push,2)
+//#pragma pack(push,2)
 
 /*
 ** $Header: r:/prj/cit/src/inc/RCS/objapp.h 1.25 1994/08/30 07:15:21 xemu Exp $
@@ -303,6 +303,6 @@ void ObjRefStateBinIteratorInit(void);
 
 uchar ObjRefStateBinIterator(ObjRefStateBin *bin);
 
-#pragma pack(pop)
+//#pragma pack(pop)
 
 #endif // OBJAPP_H

@@ -20,14 +20,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 // ShockBitmap.c - Manages off-screen bitmaps and palettes.
 
-#include <SDL.h>
-
+//#include <SDL.h>
+#include <stdint.h>
 // Globals
 
+typedef struct RO_Surface
+{
+	int w, h;
+	uint8_t *pixels;
+} RO_Surface;
+
 // Current draw surface
-extern SDL_Surface *drawSurface;
+extern RO_Surface *drawSurface;
+//extern SDL_Surface *drawSurface;
 // Offscreen draw surface
-extern SDL_Surface *offscreenDrawSurface;
+extern RO_Surface *offscreenDrawSurface;
+//extern SDL_Surface *offscreenDrawSurface;
 
 // Prototypes
 

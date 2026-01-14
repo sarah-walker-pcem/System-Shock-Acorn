@@ -218,7 +218,7 @@ ObjID ray_cast_objects(ObjID src, ObjID dest, fix bullet_mass, fix bullet_size, 
     ray.origin.z =
         fix_from_obj_height(src) + (fix_make(ObjProps[OPNUM(src)].physics_xr, 0) / (PHYSICS_RADIUS_UNIT << 1));
 
-    if (objs[dest].info.ph != -1) {
+    if (objs[dest].info.ph != (char)-1) {
         State new_state;
         void get_phys_state(int ph, State *new_state, ObjID id);
 

@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *  support for render functions and tools, such as mouse and so on
  */
 
+#include <stdint.h>
 #include "map.h"
 #include "frintern.h"
 #include "fullscrn.h"
@@ -64,7 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "curdat.h"
 
 // pain, stupidity, yes
-char model_vtext_data[] = {
+int8_t model_vtext_data[] = {
     29, -1,
     21, 15, 16, -1,
     37, 15, 21, -1,

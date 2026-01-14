@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "ai.h"
 #include "combat.h"
@@ -149,7 +150,7 @@ uchar safety_fail_count = 0;
 
 uchar safety_net_on = TRUE;
 short curr_edms_del = 0;
-short edms_delete_queue[MAX_EDMS_DELETE_OBJS];
+/*short */int16_t edms_delete_queue[MAX_EDMS_DELETE_OBJS];
 
 uchar safety_net_wont_you_back_me_up(ObjID oid) {
     obj_move_to(oid, &objs[oid].loc, TRUE);
@@ -187,7 +188,7 @@ void add_edms_delete(int ph) {
 void edms_delete_go() {
     int i;
     for (i = 0; i < curr_edms_del; i++) {
-        if (edms_delete_queue[i] != -1)
+        if (edms_delete_queue[i] != (char)-1)
             EDMS_kill_object(edms_delete_queue[i]);
         edms_delete_queue[i] = -1;
     }

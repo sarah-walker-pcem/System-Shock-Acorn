@@ -45,9 +45,9 @@ extern unsigned short *TrackUsedChannels;
 extern MIDI_EVENT *ThreadEventList[NUM_THREADS];
 extern int ThreadTiming[NUM_THREADS];
 extern char ThreadChannelRemap[16 * NUM_THREADS];
-extern SDL_atomic_t DeviceChannelVolume[16]; // only msb: 0-127
-extern SDL_atomic_t ThreadPlaying[NUM_THREADS];
-extern SDL_atomic_t ThreadCommand[NUM_THREADS];
+extern /*SDL_atomic_t*/ int DeviceChannelVolume[16]; // only msb: 0-127
+extern /*SDL_atomic_t*/ int ThreadPlaying[NUM_THREADS];
+extern /*SDL_atomic_t*/ int ThreadCommand[NUM_THREADS];
 
 struct thread_data {
     int i; // thread index

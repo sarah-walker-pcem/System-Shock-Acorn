@@ -6,15 +6,15 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 */
 /*
  * $Source: n:/project/lib/src/2d/RCS/rsd.h $
@@ -29,10 +29,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Changed algorithm so that rsd_src is never advanced
  * past the end of the bitmap.  (It stays pointed to the
  * end when the end is reached.)
- * 
+ *
  * Revision 1.1  1992/11/12  13:51:29  kaboom
  * Initial revision
- * 
+ *
  */
 
 #define RSD_RUN    0
@@ -70,29 +70,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    }                                                  \
    else                             /* long op */     \
    {                                                  \
-      ushort *rsd_usrc = (ushort *)++rsd_src;         \
+      /*ushort *rsd_usrc = (ushort *)++rsd_src;*/         \
+      ushort rsd_usrcv = rsd_src[1] | (rsd_src[2] << 8); \
+      rsd_src++;                                      \
                                                       \
-      if (*rsd_usrc >= 0x8000)                        \
+      if (rsd_usrcv >= 0x8000)                        \
       {                                               \
-         if (*rsd_usrc >= 0xc000)   /* long run */    \
+         if (rsd_usrcv >= 0xc000)   /* long run */    \
          {                                            \
             rsd_code = RSD_RUN;                       \
-            rsd_count = *rsd_usrc & 0x3fff;           \
+            rsd_count = rsd_usrcv & 0x3fff;           \
             rsd_src += 2;                             \
 /*            mprintf ("run %d ",count);   */             \
          }                                            \
          else                       /* long dump */   \
          {                                            \
             rsd_code = RSD_DUMP;                      \
-            rsd_count = *rsd_usrc & 0x7fff;           \
+            rsd_count = rsd_usrcv & 0x7fff;           \
             rsd_src += 2;                             \
 /*            mprintf ("dump %d ",count);  */             \
          }                                            \
       }                                               \
-      else if (*rsd_usrc != 0)      /* long skip */   \
+      else if (rsd_usrcv != 0)      /* long skip */   \
       {                                               \
          rsd_code = RSD_SKIP;                         \
-         rsd_count = *rsd_usrc;                       \
+         rsd_count = rsd_usrcv;                       \
          rsd_src += 2;                                \
 /*         mprintf ("skip %d ",count);     */             \
       }                                               \

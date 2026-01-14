@@ -111,9 +111,9 @@ uchar quad_code_to_mask_2[] = {FMK_NW | FMK_EW | FMK_WW,         FMK_NW | FMK_WW
                                FMK_WW | FMK_NW | FMK_SW,         FMK_WW | FMK_SW, FMK_WW | FMK_NW,
                                FMK_EW | FMK_WW | FMK_SW | FMK_NW};
 
-static char diag_moves[4][2] = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
+static int8_t diag_moves[4][2] = {{1, 1}, {1, -1}, {-1, -1}, {-1, 1}};
 static short diag_map_moves[4] = {0xdead, 0xbeef, 0xdead, 0xbeef};
-static char diag_stupid[4][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+static int8_t diag_stupid[4][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 static char diag_dirsets[4][2] = {{2, 1}, {3, 2}, {0, 3}, {1, 0}};
 
 // Protoypes

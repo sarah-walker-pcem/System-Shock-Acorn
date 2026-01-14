@@ -23,12 +23,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //--------------------
 //  Includes
 //--------------------
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "InitMac.h"
 #include "Shock.h"
 #include "ShockBitmap.h"
-#include "shockolate_version.h"
+//#include "shockolate_version.h"
+#define SHOCKOLATE_VERSION "1"
 
 //  Globals
 

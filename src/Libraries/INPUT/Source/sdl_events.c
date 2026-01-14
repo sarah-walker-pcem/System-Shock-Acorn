@@ -25,21 +25,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "lg.h"
 #include "kb.h"
 #include "mouse.h"
+#include "platform.h"
 #include <stdlib.h>
-#include <SDL.h>
-#include <OpenGL.h>
+//#include <SDL.h>
+//#include <OpenGL.h>
 
-extern SDL_Window *window;
-extern SDL_Renderer *renderer;
+extern void/*SDL_Window*/ *window;
+extern void/*SDL_Renderer*/ *renderer;
 
 bool fullscreenActive = false;
 
 static void toggleFullScreen() {
     fullscreenActive = !fullscreenActive;
-    SDL_SetWindowFullscreen(window, fullscreenActive ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+/*    SDL_SetWindowFullscreen(window, fullscreenActive ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 
     if (!(SDL_GetWindowFlags(window) & SDL_WINDOW_MAXIMIZED))
-        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);*/
 }
 
 // current state of the keys, based on the SystemShock/Mac Keycodes (sshockKeyStates[keyCode] has the state for that
@@ -85,6 +86,7 @@ static void addMouseEvent(const ss_mouse_event *ev) {
     }
 }
 
+#if 0
 static uchar sdlKeyCodeToSSHOCKkeyCode(SDL_Keycode kc) {
     // apparently System Shock uses the same keycodes as Mac
     // which are luckily documented, see
@@ -322,7 +324,7 @@ static uchar sdlKeyCodeToSSHOCKkeyCode(SDL_Keycode kc) {
         return KBC_NONE;
     }
 }
-
+#endif
 int MouseX;
 int MouseY;
 
@@ -332,6 +334,9 @@ int MouseChaosY;
 extern bool MouseCaptured;
 
 void SetMouseXY(int mx, int my) {
+    MouseX = mx;
+    MouseY = my;
+#if 0
     int physical_width, physical_height;
     SDL_GetWindowSize(window, &physical_width, &physical_height);
 
@@ -370,13 +375,14 @@ void SetMouseXY(int mx, int my) {
     }
 
     SDL_ShowCursor((!focus || (!inside && !MouseCaptured)) ? SDL_ENABLE : SDL_DISABLE);
+#endif
 }
 
 void get_mouselook_vel(int *vx, int *vy);
 
 extern bool TriggerRelMouseMode;
 
-static SDL_bool saved_rel_mouse = FALSE;
+static int /*SDL_bool*/ saved_rel_mouse = FALSE;
 
 // same codes as returned by sdlKeyCodeToSSHOCKkeyCode()
 uchar Ascii2Code[95] = {
@@ -478,6 +484,11 @@ uchar Ascii2Code[95] = {
 };
 
 void pump_events(void) {
+    Plat_PollMouse(addMouseEvent);
+    Plat_PollKeyboard(addKBevent);
+
+
+#if 0
     SDL_Event ev;
 
     while (SDL_PollEvent(&ev)) {
@@ -759,6 +770,7 @@ void pump_events(void) {
             break;
         }
     }
+#endif
 }
 
 //===============================================================
@@ -872,7 +884,7 @@ void kb_flush(void) {
     // http://mirror.informatimago.com/next/developer.apple.com/documentation/Carbon/Reference/Event_Manager/event_mgr_ref/function_group_5.html#//apple_ref/c/func/FlushEvents
     // FlushEvents(keyDownMask | autoKeyMask, 0);
 
-    SDL_FlushEvents(SDL_KEYDOWN, SDL_KEYUP); // Note: that's a range!
+//    SDL_FlushEvents(SDL_KEYDOWN, SDL_KEYUP); // Note: that's a range!
 
     nextKBevent = 0; // this flushes the keyboard events already buffered - TODO is that desirable?
 }
@@ -936,23 +948,23 @@ errtype mouse_get_xy(short *x, short *y) {
 
 void middleize_mouse(void) {
     int w, h;
-    SDL_RenderGetLogicalSize(renderer, &w, &h);
+//    SDL_RenderGetLogicalSize(renderer, &w, &h);
 
     MouseX = latestMouseEvent.x = w / 2;
     MouseY = latestMouseEvent.y = h / 2;
 }
 
 void get_mouselook_vel(int *vx, int *vy) {
-    if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
+//    if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
         *vx = *vy = 0;
-    else {
+/*    else {
         SDL_GetRelativeMouseState(vx, vy);
 
         *vx += MouseChaosX;
         MouseChaosX = 0;
         *vy += MouseChaosY;
         MouseChaosY = 0;
-    }
+    }*/
 }
 
 errtype mouse_put_xy(short x, short y) {

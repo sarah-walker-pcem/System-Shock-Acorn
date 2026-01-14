@@ -1,0 +1,199 @@
+VPATH = . Clip Flat8 Gen GR RSD string
+CC   = ~/gccsdk/cross/bin/arm-unknown-riscos-gcc
+CPP  = ~/gccsdk/cross/bin/arm-unknown-riscos-g++
+ELF2AIF = ~/gccsdk/cross/bin/elf2aif
+
+CFLAGS := -mcpu=arm710 -g3 -std=c99
+CXXFLAGS := -mcpu=arm710 -g3
+
+INCFLAGS = -IGR -IClip -IFlat8 -IGen -IRSD \
+	-I../../../GameSrc/Headers \
+	-I../../../Libraries/2D/Source \
+	-I../../../Libraries/3D/Source \
+	-I../../../Libraries/AFILE/Source \
+	-I../../../Libraries/DSTRUCT/Source \
+	-I../../../Libraries/EDMS/Source \
+	-I../../../Libraries/FIXPP/Source \
+	-I../../../Libraries/INPUT/Source \
+	-I../../../Libraries/PALETTE/Source \
+	-I../../../Libraries/RES/Source \
+	-I../../../Libraries/UI/Source \
+	-I../../../Libraries/RND/Source \
+	-I../../../Libraries/VOX/Source \
+	-I../../../Libraries/FIX/Source \
+	-I../../../Libraries/SND/Source \
+	-I../../../Libraries/H \
+	-I../../../Libraries/LG/Source \
+	-I../../../Libraries/LG/Source/LOG/src \
+	-I../../../MacSrc \
+	-I../../../MusicSrc \
+	-I../../../Libraries/adlmidi/include
+
+#	-include precompiled.h
+
+OBJ2D = bit.o \
+	bitmap.o \
+	blend.o \
+	canvas.o \
+	close.o \
+	cnvtab.o \
+	context.o \
+	detect.o \
+	devtab.o \
+	fcntab.o \
+	init.o \
+	lintab.o \
+	mode.o \
+	pal.o \
+	permap.o \
+	persetup.o \
+	pertol.o \
+	rgb.o \
+	screen.o \
+	sscrn.o \
+	StateStk.o \
+	svgainit.o \
+	tempbm.o \
+	temptm.o \
+	tlucdat.o \
+	tluctab.o \
+	valloc.o \
+	vtab.o \
+	MacDev.o \
+	grilin.o \
+	grmalloc.o \
+	grnull.o \
+	gruilin.o \
+	grd.o \
+	gendisk.o \
+	gentm.o \
+	genwclin.o \
+	genuclin.o \
+	genrsd8.o \
+	genuvlin.o \
+	genhlin.o \
+	genrsdbm.o \
+	genvlin.o \
+	genvcply.o \
+	genclin.o \
+	genfl8c.o \
+	genrsdtm.o \
+	genel.o \
+	genwlin.o \
+	genpix.o \
+	genuhlin.o \
+	genhfl8.o \
+	genov.o \
+	gente.o \
+	genlin.o \
+	gencwlin.o \
+	genchfl8.o \
+	gengfl8.o \
+	genbox.o \
+	genmono.o \
+	genulin.o \
+	gencnv.o \
+	genuslin.o \
+	genvpoly.o \
+	general.o \
+	gencirc.o \
+	genfl8.o \
+	genf24.o \
+	gentl8.o \
+	genrect.o \
+	genvrect.o \
+	genslin.o \
+	fl8vlin.o \
+	FL8OPL.o \
+	fl8cply.o \
+	fl8clin.o \
+	fl8lp.o \
+	fl8lf.o \
+	fl8ll.o \
+	fl8s.o \
+	fl8hfl8.o \
+	fl8pnt.o \
+	fl8fl8m.o \
+	fl8ltp.o \
+	fl8fl8c.o \
+	fl8w.o \
+	fl8cop.o \
+	fl8wlin.o \
+	fl8lw.o \
+	fl8pix.o \
+	fl8row.o \
+	fl8ft.o \
+	fl8rsd8.o \
+	Fl8F.o \
+	fl8bldbl.o \
+	fl8clear.o \
+	fl8p.o \
+	fl8wclin.o \
+	fl8hlin.o \
+	fl8bl.o \
+	fl8gpix.o \
+	fl8ns.o \
+	fl8lnop.o \
+	fl8dbl.o \
+	fl8cnv.o \
+	fl8slin.o \
+	fl8lin.o \
+	fl8tsmap.o \
+	fl8ply.o \
+	fl8sply.o \
+	fl8rect.o \
+	fl8gfl8.o \
+	fl8tl8.o \
+	fl8p24.o \
+	fl8g24.o \
+	fl8ctp.o \
+	fl8mscl.o \
+	fl8lop.o \
+	fl8ntrp2.o \
+	fl8sub.o \
+	fl8tpl.o \
+	fl8nl.o \
+	fl8fltr2.o \
+	fl8mono.o \
+	fl8fl8.o \
+	fl8chfl8.o \
+	clpply.o \
+	clplin.o \
+	clpclin.o \
+	clpltab.o \
+	clpf24.o \
+	clplin2.o \
+	clppoly.o \
+	clpslin.o \
+	clprect.o \
+	clpmono.o \
+	rsdcvt.o \
+	RSDUnpack.o \
+	chrsiz.o \
+	genchr.o \
+	genstr.o \
+	genuchr.o \
+	genustr.o \
+	strscl.o \
+	strsiz.o \
+	struscl.o \
+	strwrap.o
+
+lib2d.a: $(OBJ2D)
+	$(AR) -r lib2d.a $(OBJ2D)
+
+all : lib2d.a
+
+clean :
+	rm *.o
+	rm lib2d.a
+
+%.o : %.c
+	$(CC) $(CFLAGS) $(INCFLAGS) -c $<
+
+%.o : %.cpp
+	$(CPP) $(CXXFLAGS) $(INCFLAGS) -c $<
+
+%.o : %.s
+	$(CPP) $(CXXFLAGS) -c $<
+

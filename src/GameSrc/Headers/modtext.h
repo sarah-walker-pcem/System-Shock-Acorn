@@ -19,7 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MODTEXT_H
 #define MODTEXT_H
 
+#include <stdint.h>
+
 #define MAX_VTEXT_OBJS 51
 
-extern char model_vtext_data[];
+extern int8_t model_vtext_data[];
 #endif

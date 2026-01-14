@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "leanmetr.h"
 #include "mouselook.h"
@@ -36,8 +36,11 @@ extern uchar game_paused;
 extern short mouseInstantX, mouseInstantY;
 extern int32_t eye_mods[3];
 
-extern SDL_Window *window;
-extern SDL_Renderer *renderer;
+extern void /*SDL_Window*/ *window;
+extern void /*SDL_Renderer*/ *renderer;
+
+#define SDL_TRUE 1
+#define SDL_FALSE 0
 
 void middleize_mouse(void);
 void get_mouselook_vel(int *vx, int *vy);
@@ -80,7 +83,7 @@ bool TriggerRelMouseMode = FALSE;
 
 void mouse_look_toggle(void) {
     mlook_enabled = !mlook_enabled;
-
+/*
     if (mlook_enabled) {
         SDL_SetRelativeMouseMode(SDL_TRUE);
 
@@ -96,10 +99,11 @@ void mouse_look_toggle(void) {
 
         TriggerRelMouseMode = TRUE;
     }
+*/
 }
 
 void mouse_look_off(void) {
-    if (mlook_enabled) {
+/*    if (mlook_enabled) {
         mlook_enabled = FALSE;
 
         SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -109,10 +113,11 @@ void mouse_look_off(void) {
         SDL_WarpMouseInWindow(window, w / 2, h / 2);
 
         TriggerRelMouseMode = TRUE;
-    }
+    }*/
 }
 
 void mouse_look_unpause(void) {
+/*
     if (mlook_enabled) {
         SDL_SetRelativeMouseMode(SDL_TRUE);
 
@@ -120,4 +125,5 @@ void mouse_look_unpause(void) {
         int mvelx, mvely;
         get_mouselook_vel(&mvelx, &mvely);
     }
+*/
 }

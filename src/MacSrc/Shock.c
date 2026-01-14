@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //  Includes
 //--------------------
 #include <math.h>
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "InitMac.h"
 #include "Modding.h"
@@ -42,9 +42,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "hkeyfunc.h"
 #include "mainloop.h"
 #include "setup.h"
-#include "shockolate_version.h"
+//#include "shockolate_version.h"
+#define SHOCKOLATE_VERSION "1"
 #include "status.h"
 #include "version.h"
+
+#include "platform.h"
 
 //--------------------
 //  Globals
@@ -52,11 +55,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 bool gPlayingGame;
 
 grs_screen *cit_screen;
-SDL_Window *window;
-SDL_Palette *sdlPalette;
-SDL_Renderer *renderer;
+/*SDL_Window*/ void *window;
+/*SDL_Palette*/ void *sdlPalette;
+/*SDL_Renderer*/ void *renderer;
 
-SDL_AudioDeviceID device;
+/*SDL_AudioDeviceID*/ int device;
 
 int num_args;
 char **arg_values;
@@ -81,14 +84,23 @@ extern void LoadMoveKeybinds(void);
 //		Main function.
 //------------------------------------------------------------------------------------
 int main(int argc, char **argv) {
+    FILE *logf;
     // Save the arguments for later
 
     num_args = argc;
     arg_values = argv;
 
+    Plat_Init();
+
     // FIXME externalize this
+#if RO_DEBUG
     log_set_quiet(0);
-    log_set_level(LOG_INFO);
+    log_set_level(LOG_DEBUG); //TRACE); //DEBUG); //INFO);
+    logf = plat_fopen("arclog.txt", "wt");
+    log_set_fp(logf);
+#else
+    log_set_quiet(1);
+#endif
 
     INFO("Logger initialized");
 
@@ -113,7 +125,7 @@ int main(int argc, char **argv) {
 
     // CC: Modding support! This is so exciting.
 
-    ProcessModArgs(argc, argv);
+//    ProcessModArgs(argc, argv);
 
     // Initialize
 
@@ -142,6 +154,7 @@ int main(int argc, char **argv) {
 
     status_bio_end();
     stop_music();
+    snd_stop_digital();
 
     return 0;
 }
@@ -160,7 +173,7 @@ bool CheckArgument(char *arg) {
 }
 
 void InitSDL() {
-    SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
+/*    SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
         DEBUG("%s: Init failed", __FUNCTION__);
@@ -178,7 +191,7 @@ void InitSDL() {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-
+*/
     gr_init();
 
     extern short svga_mode_data[];
@@ -189,7 +202,7 @@ void InitSDL() {
     // Create a canvas to draw to
 
     SetupOffscreenBitmaps(grd_cap->w, grd_cap->h);
-
+/*
     // Open our window!
     char window_title[128];
     sprintf(window_title, "System Shock - %s", SHOCKOLATE_VERSION);
@@ -200,7 +213,7 @@ void InitSDL() {
     // Create the palette
 
     sdlPalette = SDL_AllocPalette(256);
-
+*/
     // Setup the screen
 
     svga_screen = cit_screen = gr_alloc_screen(grd_cap->w, grd_cap->h);
@@ -208,12 +221,15 @@ void InitSDL() {
 
     gr_alloc_ipal();
 
-    SDL_ShowCursor(SDL_DISABLE);
+    Plat_InitVideo();
+    Plat_InitKeyboard();
 
-    atexit(SDL_Quit);
+/*    SDL_ShowCursor(SDL_DISABLE);
 
-    SDL_RaiseWindow(window);
+    atexit(SDL_Quit);*/
 
+//    SDL_RaiseWindow(window);
+/*
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     SDL_RenderSetLogicalSize(renderer, grd_cap->w, grd_cap->h);
 
@@ -224,9 +240,12 @@ void InitSDL() {
     SDLDraw();
 
     SDL_ShowWindow(window);
+*/
 }
 
-SDL_Color gamePalette[256];
+//SDL_Color gamePalette[256];
+Plat_Palette gamePalette[256];
+
 bool UseCutscenePalette = FALSE; // see cutsloop.c
 void SetSDLPalette(int index, int count, uchar *pal) {
     static bool gammalut_init = 0;
@@ -255,9 +274,11 @@ void SetSDLPalette(int index, int count, uchar *pal) {
     gam -= 10;
 
     for (int i = index; i < index + count; i++) {
-        gamePalette[i].r = gammalut[gam][*pal++];
-        gamePalette[i].g = gammalut[gam][*pal++];
-        gamePalette[i].b = gammalut[gam][*pal++];
+//        if (i < 16)
+//            INFO("pal[%u] = %u,%u,%u", i, pal[0], pal[1], pal[2]);
+        gamePalette[i].r = /**pal++; */gammalut[gam][*pal++];
+        gamePalette[i].g = /**pal++; */gammalut[gam][*pal++];
+        gamePalette[i].b = /**pal++; */gammalut[gam][*pal++];
         gamePalette[i].a = 0xff;
     }
 
@@ -268,16 +289,20 @@ void SetSDLPalette(int index, int count, uchar *pal) {
         gamePalette[255].b = 0x0;
         gamePalette[255].a = 0xff;
     }
-
+    Plat_Set_Palette(gamePalette);
+#if 0
     SDL_SetPaletteColors(sdlPalette, gamePalette, 0, 256);
     SDL_SetSurfacePalette(drawSurface, sdlPalette);
     SDL_SetSurfacePalette(offscreenDrawSurface, sdlPalette);
 
     if (should_opengl_swap())
         opengl_change_palette();
+#endif
 }
 
 void SDLDraw() {
+	Plat_Draw();
+#if 0
     if (should_opengl_swap()) {
         sdlPalette->colors[255].a = 0x00;
     }
@@ -299,14 +324,15 @@ void SDLDraw() {
         SDL_RenderPresent(renderer);
         SDL_RenderClear(renderer);
     }
+#endif
 }
 
-bool MouseCaptured = FALSE;
+bool MouseCaptured = TRUE; //FALSE;
 
 extern int mlook_enabled;
 
 void CaptureMouse(bool capture) {
-    MouseCaptured = (capture && gShockPrefs.goCaptureMouse);
+/*    MouseCaptured = (capture && gShockPrefs.goCaptureMouse);
 
     if (!MouseCaptured && mlook_enabled && SDL_GetRelativeMouseMode() == SDL_TRUE) {
         SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -315,5 +341,5 @@ void CaptureMouse(bool capture) {
         SDL_GetWindowSize(window, &w, &h);
         SDL_WarpMouseInWindow(window, w / 2, h / 2);
     } else
-        SDL_SetRelativeMouseMode(MouseCaptured ? SDL_TRUE : SDL_FALSE);
+        SDL_SetRelativeMouseMode(MouseCaptured ? SDL_TRUE : SDL_FALSE);*/
 }

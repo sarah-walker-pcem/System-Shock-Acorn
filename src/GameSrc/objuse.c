@@ -1579,7 +1579,7 @@ uchar obj_keypad_crunch(int p, uchar digits[MAX_KEYPAD_DIGITS]) {
 
 errtype keypad_trigger(ObjID id, uchar digits[MAX_KEYPAD_DIGITS]) {
     ObjSpecID osid = objs[id].specID;
-    char match = -1;
+    int8_t match = -1;
     if ((objs[id].obclass != CLASS_FIXTURE) || (!objs[id].active)) {
         return (ERR_NOEFFECT);
     }

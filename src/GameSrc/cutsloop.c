@@ -17,9 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "Shock.h"
+#include "platform.h"
 #include "cutsloop.h"
 #include "mainloop.h"
 #include "fullscrn.h"
@@ -34,12 +35,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "afile.h"
 #include "movie.h"
 
-SDL_AudioStream *cutscene_audiostream = NULL;
+extern int snd_sample_play_raw(int snd_ref, int len, uchar *smp, int freq);
+
+void /*SDL_AudioStream*/ *cutscene_audiostream = NULL;
+
+#define AUDIO_U8 0
+#define AUDIO_S16SYS 0
 
 static uint8_t *cutscene_audiobuffer = NULL;
 static uint8_t *cutscene_audiobuffer_pos = NULL;
 static int cutscene_audiobuffer_size; //in blocks of MOVIE_DEFAULT_BLOCKLEN
-
+static int cutscene_ch = -1;
 
 
 static int cutscene_filehandle;
@@ -60,7 +66,7 @@ static long next_draw_time;
 static char *cutscene_files[3] =
 {
   "res/data/svgaintr.res",
-  "res/data/svgadeth.res", 
+  "res/data/svgadeth.res",
   "res/data/svgaend.res"
 };
 
@@ -83,15 +89,15 @@ extern char EngSubtitle[256];
 extern char FrnSubtitle[256];
 extern char GerSubtitle[256];
 
-extern SDL_AudioDeviceID device;
+extern /*SDL_AudioDeviceID*/ int device;
 
 
 void AudioStreamCallback(void *userdata, unsigned char *stream, int len)
 {
-  SDL_AudioStream *as = *(SDL_AudioStream **)userdata;
+/*  SDL_AudioStream *as = *(SDL_AudioStream **)userdata;
 
   if (as != NULL && SDL_AudioStreamAvailable(as) > 0)
-    SDL_AudioStreamGet(as, stream, len);
+    SDL_AudioStreamGet(as, stream, len);*/
 }
 
 
@@ -151,12 +157,17 @@ void cutscene_exit(void)
 {
   DEBUG("Cutscene exit");
 
+  if (cutscene_ch != -1)
+  {
+    snd_end_sample(cutscene_ch);
+    cutscene_ch = -1;
+  }
   if (cutscene_audiostream != NULL)
   {
-    SDL_PauseAudioDevice(device, 1);
+/*    SDL_PauseAudioDevice(device, 1);
     SDL_Delay(1);
 
-    SDL_FreeAudioStream(cutscene_audiostream);
+    SDL_FreeAudioStream(cutscene_audiostream);*/
     cutscene_audiostream = NULL;
 
     if (cutscene_audiobuffer)
@@ -178,19 +189,19 @@ void cutscene_exit(void)
 void cutscene_loop(void)
 {
   fix time;
-  long cur_time = SDL_GetTicks();
+  long cur_time = Plat_GetTicks();
 
   static uint8_t palette[3*256];
 
   if (cutscene_audiostream)
   {
-    SDL_PauseAudioDevice(device, 0);
-  
+//    SDL_PauseAudioDevice(device, 0);
+
     if (cutscene_audiobuffer_size > 0)
     {
       // === adjust volume in buffer here ===
 
-      SDL_AudioStreamPut(cutscene_audiostream, cutscene_audiobuffer_pos, MOVIE_DEFAULT_BLOCKLEN);
+//      SDL_AudioStreamPut(cutscene_audiostream, cutscene_audiobuffer_pos, MOVIE_DEFAULT_BLOCKLEN);
       cutscene_audiobuffer_pos += MOVIE_DEFAULT_BLOCKLEN;
       cutscene_audiobuffer_size--;
     }
@@ -200,7 +211,7 @@ void cutscene_loop(void)
   {
     is_first_frame = FALSE;
     next_time = cur_time;
-    start_time = SDL_GetTicks();
+    start_time = Plat_GetTicks();
 
     // Read the first frame
     AfileReadFullFrame(amovie, &movie_bitmap, &time);
@@ -325,10 +336,12 @@ short play_cutscene(int id, bool show_credits)
 
   if (sfx_on)
   {
-    SDL_PauseAudioDevice(device, 1);
-    SDL_Delay(1);
+//    SDL_PauseAudioDevice(device, 1);
+//    SDL_Delay(1);
 
-    cutscene_audiostream = SDL_NewAudioStream(AUDIO_U8, 1, fix_int(amovie->a.sampleRate), AUDIO_S16SYS, 2, 48000);
+    cutscene_audiostream = 1; //SDL_NewAudioStream(AUDIO_U8, 1, fix_int(amovie->a.sampleRate), AUDIO_S16SYS, 2, 48000);
+
+    cutscene_ch = snd_sample_play_raw(0, cutscene_audiobuffer_size * MOVIE_DEFAULT_BLOCKLEN, cutscene_audiobuffer, fix_int(amovie->a.sampleRate));
 
     cutscene_audiobuffer_pos = cutscene_audiobuffer;
   }

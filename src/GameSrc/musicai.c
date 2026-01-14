@@ -393,13 +393,14 @@ errtype make_request(int chunk_num, int piece_ID) {
 
     int i = chunk_num;
     int track = 1+piece_ID;
+#if 0
     if (i >= 0 && i < NUM_THREADS && track >= 0 && track < NumTracks && !WonGame_ShowStats && !IsPlaying(i))
     {
 //        extern uchar curr_vol_lev;
 //        int volume = (int)curr_vol_lev * 127 / 100; //convert from 0-100 to 0-127
         StartTrack(i, track);
     }
-
+#endif
     return (OK);
 }
 

@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECTS_H
 #define __OBJECTS_H
 
+#include <stdint.h>
+typedef uint8_t uchar;
+
 /*
 ** $Header: r:/prj/cit/src/inc/RCS/objects.h 1.18 1994/08/30 07:15:13 xemu Exp $
 *
@@ -64,7 +67,7 @@ typedef short ObjSpecID;
 #include "objapp.h"
 #endif
 
-#pragma pack(push,2)
+//#pragma pack(push,2)
 
 // The common data for all objects
 typedef struct Obj {
@@ -128,7 +131,7 @@ typedef struct ObjSpecHeader {
 // field is the head of the free chain, while its id element is the head of the
 // used chain.  The next field is the next element in the free chain or used chain,
 // as appropriate.
-
+//#pragma pack(pop)
 typedef struct ObjSpec {
     union {
         struct {
@@ -143,7 +146,7 @@ typedef struct ObjSpec {
     };
     ObjSpecID prev; // prev struct in used chain
 } ObjSpec;
-
+//#pragma pack(push,2)
 // This macro permutes the ObjSpecID pmo through all of the ObjSpecs in the
 // used chain of objspec.  "tile" is set to whether it's a tiled object.
 // Note that the "tile =" line in the third part refers to the pmo that
@@ -311,6 +314,6 @@ uchar ObjInstInit(ObjID id, ObjSpecID specid, ObjSubClass subclass);
 
 //////////////////////////////
 
-#pragma pack(pop)
+//#pragma pack(pop)
 
 #endif // __OBJECTS_H

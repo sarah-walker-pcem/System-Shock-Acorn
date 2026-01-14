@@ -23,7 +23,12 @@
 
 //============================================================================
 // Includes
+// ACORN FIXME - check auto removal ok!
+#include <stdint.h>
+extern "C"
+{
 #include "lg.h"
+};
 #include "2d.h"
 
 // Holds bitstream information between invocations.
@@ -88,10 +93,10 @@ void Draw4x4(uchar* p, int width, int height)
     int row = grd_canvas->bm.row;
     cell_column = width / 4;
     BitstreamInfo bitstream(p+2);
-    uchar* mask_stream = (p + *((ushort*)(p)));
+    int mask_offset = p[0] | (p[1] << 8);
+    uchar* mask_stream = (p + mask_offset); //*((ushort*)(p)));
 
     uchar* bits = grd_canvas->bm.bits;
-
     int row4 = row * 4;
     uint aligned_height = height & ~3;
     for (uint y = 0; y < aligned_height; y += 4) {
@@ -111,11 +116,11 @@ static void Draw4x4_InternalAlpha(uint32_t* xtab, int b, BitstreamInfo& bitstrea
     while (b > 0) {
 	// Pull 12 bits from the bitstream and use it as an index into the
 	// hufftable.
-	auto const hindex = bitstream.peek(12);
+	uint32_t const hindex = bitstream.peek(12);
 	uint8_t* huffptr = &d4x4_hufftab[hindex * 3];
-	uint32_t huffword = *((uint32_t*)huffptr) & 0x00FFFFFF;
+	uint32_t huffword = huffptr[0] | (huffptr[1] << 8) | (huffptr[2] << 16); //*((uint32_t*)huffptr) & 0x00FFFFFF;
 	// Bits 20-23 are the count field.
-	auto count = (huffword & 0xf00000) >> 20;
+	uint32_t count = (huffword & 0xf00000) >> 20;
 	if (count == 0) {
 	    // A count of 0 is a long offset. It always advances the bitpointer
 	    // by 12, since obviously it can't use the count to advance.
@@ -126,11 +131,11 @@ static void Draw4x4_InternalAlpha(uint32_t* xtab, int b, BitstreamInfo& bitstrea
 		// the hufftable.
 		huffptr = d4x4_hufftab + huffword * 3;
 		// Pull 4 bits from the bitstream and add that to the huffindex.
-		auto const offset = bitstream.peek(4);
-		
+		uint32_t const offset = bitstream.peek(4);
+
 		huffptr += offset * 3;
 		// Check the next count: if it's still zero, go round again.
-		huffword = *((uint32_t*)huffptr) & 0x00FFFFFF;
+		huffword = huffptr[0] | (huffptr[1] << 8) | (huffptr[2] << 16); //*((uint32_t*)huffptr) & 0x00FFFFFF;
 		count = (huffword & 0xf00000) >> 20;
 		if (count == 0)
 		{
@@ -146,13 +151,13 @@ static void Draw4x4_InternalAlpha(uint32_t* xtab, int b, BitstreamInfo& bitstrea
 
 	b--;
 	// Check the control word for special types.
-	auto const type = (huffword & 0x000e0000) >> 17;
+	uint32_t const type = (huffword & 0x000e0000) >> 17;
 	switch (type)
 	{
 	case 5:
 	{
 	    // Type 5: skip. The next 5 bits from the bitstream form the count.
-	    auto hcnt = bitstream.take(5);
+	    uint32_t hcnt = bitstream.take(5);
 	    // A count of 31 skips the rest of the row.
 	    if (hcnt == 0x1f) {
 		hcnt = b;
@@ -186,14 +191,14 @@ static uint8_t* Draw4x4_InternalBeta(uint32_t* xtab, int framesize,
     uint8_t* tbits;    // temp copy of bits
     int i;           // generic loop index
 
-    auto const end = bits + 4*framesize;
+    uint8_t const *end = bits + 4*framesize;
     while (bits < end) {
 	// Read a control word from the decoded xtab and interpret it.
 	// Bits 0-16 are the 'parameter' field.
 	// Bits 17-19 are the 'type' field.
 	// Bits 20-23 are only used by the first-stage decoder.
-	auto const xtype = (*xtab >> 17) & 0x07;
-	auto const xparam = *xtab & 0x01ffff;
+	uint32_t const xtype = (*xtab >> 17) & 0x07;
+	uint32_t const xparam = *xtab & 0x01ffff;
 
         switch (xtype) {
         case 0:
@@ -225,7 +230,7 @@ static uint8_t* Draw4x4_InternalBeta(uint32_t* xtab, int framesize,
 		uint8_t(xparam & 0xff),
 		uint8_t((xparam & 0xff00) >> 8)
 	    };
-	    auto mask = *(uint16_t*)mask_stream;
+	    uint16_t mask = mask_stream[0] | (mask_stream[1] << 8); //*(uint16_t*)mask_stream;
 	    mask_stream += 2;
 	    tbits = bits;
             if (ctab[0] != 0) {
@@ -259,10 +264,10 @@ static uint8_t* Draw4x4_InternalBeta(uint32_t* xtab, int framesize,
 	    // main colour table, taken to point to a 4-byte colour table. Set
 	    // each tile pixel to the colour table indexed by the corresponding
 	    // 2 bits of the mask word.
-	    auto mask = *(uint32_t*)mask_stream;
+	    uint32_t mask = mask_stream[0] | (mask_stream[1] << 8) | (mask_stream[2] << 16) | (mask_stream[3] << 24); //*(uint32_t*)mask_stream;
 	    mask_stream += 4;
             tbits = bits;
-	    auto const ctab = d4x4_colorset + xparam;
+	    uint8_t const *ctab = d4x4_colorset + xparam;
             if (ctab[0] != 0) {
 		// No transparency.
 		for (i = 0; i < 4; ++i) {
@@ -288,6 +293,8 @@ static uint8_t* Draw4x4_InternalBeta(uint32_t* xtab, int framesize,
 	}
         case 3:
 	{
+//	    mask_stream += 6;
+//		break;
 	    // Type 3: 3-bit index. As above, but read 48 bits from the mask
 	    // stream and use each 3-bit field as an index into an 8-byte colour
 	    // table.
@@ -295,10 +302,11 @@ static uint8_t* Draw4x4_InternalBeta(uint32_t* xtab, int framesize,
 	    // code, I think it's more convenient and probably just as efficient
 	    // to let the compiler deal with wide data types, even on a 32-bit
 	    // platform.
-	    auto mask = *(uint64_t*)mask_stream;
+	    uint64_t mask = (uint64_t)mask_stream[0] | ((uint64_t)mask_stream[1] << 8) | ((uint64_t)mask_stream[2] << 16) | ((uint64_t)mask_stream[3] << 24) |
+	    		((uint64_t)mask_stream[4] << 32) | ((uint64_t)mask_stream[5] << 40); //*(uint64_t*)mask_stream;
 	    mask_stream += 6;
             tbits = bits;
-	    auto const ctab = d4x4_colorset + xparam;
+	    uint8_t const *ctab = d4x4_colorset + xparam;
             if (ctab[0] != 0) {
 		// No transparency.
 		for (i = 0; i < 4; ++i) {
@@ -309,7 +317,7 @@ static uint8_t* Draw4x4_InternalBeta(uint32_t* xtab, int framesize,
                     mask >>= 12;
                     tbits += row;
                 }
-                break;
+                //break;
             } else {
 		for (i = 0; i < 4; ++i) {
 		    if (mask & 0x007) tbits[0] = ctab[mask & 0x007];
@@ -324,12 +332,16 @@ static uint8_t* Draw4x4_InternalBeta(uint32_t* xtab, int framesize,
 	}
         case 4:
 	{
+//	    mask_stream += 8;
+//		break;
 	    // Type 4: 4-bit index. Mask word is 64 bits, colour table has 16
 	    // entries.
-	    auto mask = *(uint64_t*)mask_stream;
+//	    uint64_t mask = *(uint64_t*)mask_stream;
+	    uint64_t mask = (uint64_t)mask_stream[0] | ((uint64_t)mask_stream[1] << 8) | ((uint64_t)mask_stream[2] << 16) | ((uint64_t)mask_stream[3] << 24) |
+	    		((uint64_t)mask_stream[4] << 32) | ((uint64_t)mask_stream[5] << 40) | ((uint64_t)mask_stream[6] << 48) | ((uint64_t)mask_stream[7] << 56); //*(uint64_t*)mask_stream;
 	    mask_stream += 8;
             tbits = bits;
-	    auto const ctab = d4x4_colorset + xparam;
+	    uint8_t const *ctab = d4x4_colorset + xparam;
             if (ctab[0] != 0) {
 		// No transparency.
 		for (i = 0; i < 4; ++i) {

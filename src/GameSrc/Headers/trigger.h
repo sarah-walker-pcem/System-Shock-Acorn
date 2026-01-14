@@ -59,7 +59,7 @@ typedef struct {
     ushort type;
     char semaphor;
     char key;
-    char steps_remaining;
+    int8_t steps_remaining;
     char sfx_code;
 } HeightSchedEvent;
 

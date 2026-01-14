@@ -1,0 +1,247 @@
+VPATH = . src/GameSrc src/MacSrc src/AcornSrc
+CC   = ~/gccsdk/cross/bin/arm-unknown-riscos-gcc
+CPP  = ~/gccsdk/cross/bin/arm-unknown-riscos-g++
+STRIP = ~/gccsdk/cross/bin/arm-unknown-riscos-strip
+ELF2AIF = ~/gccsdk/cross/bin/elf2aif
+
+#CFLAGS = -mcpu=arm710 -O3 -std=c99
+#CXXFLAGS = -mcpu=arm710 -O3
+
+CFLAGS = -mcpu=arm710 -O3 -std=c99
+CXXFLAGS = -mcpu=arm710 -O3
+
+#CXXFLAGS = -mcpu=strongarm -g3 -std=c99 -DRO_DEBUG
+
+INCFLAGS = -Isrc/GameSrc/Headers \
+	-Isrc/Libraries/2D/Source \
+	-Isrc/Libraries/3D/Source \
+	-Isrc/Libraries/AFILE/Source \
+	-Isrc/Libraries/DSTRUCT/Source \
+	-Isrc/Libraries/EDMS/Source \
+	-Isrc/Libraries/FIXPP/Source \
+	-Isrc/Libraries/INPUT/Source \
+	-Isrc/Libraries/PALETTE/Source \
+	-Isrc/Libraries/RES/Source \
+	-Isrc/Libraries/UI/Source \
+	-Isrc/Libraries/RND/Source \
+	-Isrc/Libraries/VOX/Source \
+	-Isrc/Libraries/FIX/Source \
+	-Isrc/Libraries/SND/Source \
+	-Isrc/Libraries/H \
+	-Isrc/Libraries/LG/Source \
+	-Isrc/Libraries/LG/Source/LOG/src \
+	-Isrc/MacSrc \
+	-Isrc/MusicSrc \
+	-Isrc/Libraries/adlmidi/include \
+	-include precompiled.h
+
+OBJ = ai.o \
+	airupt.o \
+	amap.o \
+	amaploop.o \
+	ammomfd.o \
+	anim.o \
+	archiveformat.o \
+	audiolog.o \
+	automap.o \
+	bark.o \
+	biohelp.o \
+	cardmfd.o \
+	citres.o \
+	combat.o \
+	cone.o \
+	criterr.o \
+	cyber.o \
+	cybermfd.o \
+	cybmem.o \
+	cybrnd.o \
+	cutsloop.o \
+	damage.o \
+	digifx.o \
+	drugs.o \
+	effect.o \
+	email.o \
+	faceobj.o \
+	fixtrmfd.o \
+	frcamera.o \
+	frclip.o \
+	frcompil.o \
+	frmain.o \
+	frobj.o \
+	froslew.o \
+	frpipe.o \
+	frpts.o \
+	frsetup.o \
+	frtables.o \
+	frterr.o \
+	frutil.o \
+	FrUtils.o \
+	fullamap.o \
+	fullscrn.o \
+	gameloop.o \
+	gameobj.o \
+	gamesort.o \
+	gamestrn.o \
+	gamesys.o \
+	gametime.o \
+	gamewrap.o \
+	gearmfd.o \
+	gr2ss.o \
+	grenades.o \
+	hand.o \
+	hflip.o \
+	hkeyfunc.o \
+	hud.o \
+	hudobj.o \
+	init.o \
+	input.o \
+	invent.o \
+	leanmetr.o \
+	mainloop.o \
+	map.o \
+	mfdfunc.o \
+	mfdgadg.o \
+	mfdgames.o \
+	mfdgump.o \
+	mfdpanel.o \
+	minimax.o \
+	mlimbs.o \
+	movekeys.o \
+	musicai.o \
+	newai.o \
+	newmfd.o \
+	objapp.o \
+	objects.o \
+	objload.o \
+	objprop.o \
+	objsim.o \
+	objuse.o \
+	olh.o \
+	olhscan.o \
+	palfx.o \
+	pathfind.o \
+	physics.o \
+	player.o \
+	plotware.o \
+	popups.o \
+	render.o \
+	rendtool.o \
+	saveload.o \
+	schedule.o \
+	screen.o \
+	setup.o \
+	shodan.o \
+	sideicon.o \
+	sndcall.o \
+	star.o \
+	statics.o \
+	status.o \
+	target.o \
+	textmaps.o \
+	tickcount.o \
+	tfdirect.o \
+	tfutil.o \
+	tools.o \
+	trigger.o \
+	view360.o \
+	viewhelp.o \
+	vitals.o \
+	vmail.o \
+	wares.o \
+	weapons.o \
+	wrapper.o \
+	gamerend.o \
+	mouselook.o
+
+MACOBJ = ShockBitmap.o \
+	InitMac.o \
+	Shock.o \
+	Prefs.o \
+	MacTune.o
+
+ACORNOBJ = ROEventHandler.o \
+	ROInput.o \
+	ROMisc.o \
+	ROSound.o \
+	ROSound8.o \
+	ROVideo.o \
+	ROXmi.o
+
+LIBS = lib2d.a lib3d.a libafile.a libdstruct.a libedms.a libfix.a libfixpp.a libinput.a liblg.a libpalette.a libres.a librnd.a libui.a libvox.a
+
+!RunImage,ff8: $(OBJ) $(MACOBJ) $(ACORNOBJ) $(LIBS)
+	$(CPP) $(CXXFLAGS) $(OBJ) $(MACOBJ) $(ACORNOBJ) -static -o "!RunImage,ff8" $(LIBS)
+	$(STRIP) "!RunImage,ff8"
+	$(ELF2AIF) "!RunImage,ff8"
+
+lib2d.a:
+	$(MAKE) -C src/Libraries/2D/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/2D/Source/lib2d.a .
+
+lib3d.a:
+	$(MAKE) -C src/Libraries/3D/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/3D/Source/lib3d.a .
+
+libafile.a:
+	$(MAKE) -C src/Libraries/AFILE/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/AFILE/Source/libafile.a .
+
+libdstruct.a:
+	$(MAKE) -C src/Libraries/DSTRUCT/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/DSTRUCT/Source/libdstruct.a .
+
+libedms.a:
+	$(MAKE) -C src/Libraries/EDMS/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/EDMS/Source/libedms.a .
+
+libfix.a:
+	$(MAKE) -C src/Libraries/FIX/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/FIX/Source/libfix.a .
+
+libfixpp.a:
+	$(MAKE) -C src/Libraries/FIXPP/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/FIXPP/Source/libfixpp.a .
+
+libinput.a:
+	$(MAKE) -C src/Libraries/INPUT/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/INPUT/Source/libinput.a .
+
+liblg.a:
+	$(MAKE) -C src/Libraries/LG/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/LG/Source/liblg.a .
+
+libpalette.a:
+	$(MAKE) -C src/Libraries/PALETTE/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/PALETTE/Source/libpalette.a .
+
+libres.a:
+	$(MAKE) -C src/Libraries/RES/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/RES/Source/libres.a .
+
+librnd.a:
+	$(MAKE) -C src/Libraries/RND/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/RND/Source/librnd.a .
+
+libui.a:
+	$(MAKE) -C src/Libraries/UI/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/UI/Source/libui.a .
+
+libvox.a:
+	$(MAKE) -C src/Libraries/VOX/Source -f Makefile.gccsdk CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"
+	cp src/Libraries/VOX/Source/libvox.a .
+
+all : !RunImage,ff8
+
+clean :
+	rm *.o
+	rm !RunImage,ff8
+
+%.o : %.c
+	$(CC) $(CFLAGS) $(INCFLAGS) -c $<
+
+%.o : %.cpp
+	$(CPP) $(CXXFLAGS) $(INCFLAGS) -c $<
+
+%.o : %.s
+	$(CPP) $(CXXFLAGS) -c $<
+

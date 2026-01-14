@@ -131,15 +131,15 @@ void SetDefaultPrefs(void) {
 static char *GetPrefsPathFilename(void) {
     static char filename[512];
 
-    FILE *f = fopen(PREFS_FILENAME, "r");
+    FILE *f = plat_fopen(PREFS_FILENAME, "r");
     if (f != NULL) {
         fclose(f);
         strcpy(filename, PREFS_FILENAME);
-    } else {
+    }/* else {
         char *p = SDL_GetPrefPath("Interrupt", "SystemShock");
         snprintf(filename, sizeof(filename), "%s%s", p, PREFS_FILENAME);
         SDL_free(p);
-    }
+    }*/
 
     return filename;
 }
@@ -161,7 +161,7 @@ static bool is_true(const char *s) {
 //	  Locate the preferences file and load them to set our global pref settings.
 //--------------------------------------------------------------------
 int16_t LoadPrefs(void) {
-    FILE *f = fopen(GetPrefsPathFilename(), "r");
+    FILE *f = plat_fopen(GetPrefsPathFilename(), "r");
     if (!f) {
         // file can't be open, write default preferences
         return SavePrefs();
@@ -256,7 +256,7 @@ int16_t LoadPrefs(void) {
 int16_t SavePrefs(void) {
     INFO("Saving preferences");
 
-    FILE *f = fopen(GetPrefsPathFilename(), "w");
+    FILE *f = plat_fopen(GetPrefsPathFilename(), "w");
     if (!f) {
         printf("ERROR: Failed to open preferences file\n");
         return -1;
@@ -551,7 +551,7 @@ HOTKEYLOOKUP HotKeyLookup[] = {
     {"\"arm_grenade\"", DEMO_CONTEXT, arm_grenade_hotkey, 0, 0, ALT('\''), 0},
     {"\"use_drug\"", DEMO_CONTEXT, use_drug_hotkey, 0, 0, ALT(';'), 0},
     {"\"hud_color\"", DEMO_CONTEXT, hud_color_bank_cycle, 0, 0, ALT('h'), 0},
-    {"\"showhelp\"", DEMO_CONTEXT, olh_overlay_func, (intptr_t)&olh_overlay_on, 0, ALT('o'), 0},    
+    {"\"showhelp\"", DEMO_CONTEXT, olh_overlay_func, (intptr_t)&olh_overlay_on, 0, ALT('o'), 0},
     {"\"bio scan\"", DEMO_CONTEXT, hw_hotkey_callback, 5, 0, 49, 0},
     {"\"fullscreen\"", DEMO_CONTEXT, hw_hotkey_callback, 10, 0, 50, 0},
     {"\"360 view\"", DEMO_CONTEXT, hw_hotkey_callback, 2, 0, 51, 0},
@@ -600,15 +600,15 @@ int FireKeys[MAX_FIRE_KEYS + 1]; // see input.c
 static char *GetKeybindsPathFilename(void) {
     static char filename[512];
 
-    FILE *f = fopen(KEYBINDS_FILENAME, "r");
+    FILE *f = plat_fopen(KEYBINDS_FILENAME, "r");
     if (f != NULL) {
         fclose(f);
         strcpy(filename, KEYBINDS_FILENAME);
-    } else {
+    }/* else {
         char *p = SDL_GetPrefPath("Interrupt", "SystemShock");
         snprintf(filename, sizeof(filename), "%s%s", p, KEYBINDS_FILENAME);
         SDL_free(p);
-    }
+    }*/
 
     return filename;
 }
@@ -631,7 +631,7 @@ void LoadHotkeyKeybinds(void) {
         i++;
     }
 
-    f = fopen(GetKeybindsPathFilename(), "r");
+    f = plat_fopen(GetKeybindsPathFilename(), "r");
     if (f) {
         // scan keybinds file line by line
         while (fgets(temp, sizeof(temp), f)) {
@@ -926,7 +926,7 @@ void LoadMoveKeybinds(void) {
     // keep track of which moves are specified so we can add default ones for those that are missing
     memset(move_used, 0, NUM_MOVES);
 
-    f = fopen(GetKeybindsPathFilename(), "r");
+    f = plat_fopen(GetKeybindsPathFilename(), "r");
     if (f) {
         // scan keybinds file line by line
         while (fgets(temp, sizeof(temp), f)) {
@@ -1136,14 +1136,14 @@ void CreateDefaultKeybindsFile(void) {
     int i, ch;
 
     // check if file already exists; if so, return
-    f = fopen(filename, "r");
+    f = plat_fopen(filename, "r");
     if (f != NULL) {
         fclose(f);
         return;
     }
 
     // open new file for writing
-    f = fopen(filename, "w");
+    f = plat_fopen(filename, "w");
     if (f == NULL)
         return;
 

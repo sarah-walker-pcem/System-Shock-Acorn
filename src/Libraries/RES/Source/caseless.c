@@ -239,13 +239,15 @@ int caselesspath(const char *inpath, char *outpath, int wantdir) {
 #endif // not Windows
 }
 
+extern FILE *plat_fopen(char *fn, char *mode);
+
 FILE *fopen_caseless(const char *path, const char *mode) {
     FILE *ret = NULL;
 
     if (path == NULL || mode == NULL)
         return NULL;
 
-    ret = fopen(path, mode);
+    ret = plat_fopen(path, mode);
 
 #ifndef _WIN32 // not windows
     if (ret == NULL) {
@@ -253,7 +255,7 @@ FILE *fopen_caseless(const char *path, const char *mode) {
         size_t pathlen = strlen(path);
 
         if (pathlen < sizeof(fixedpath) && caselesspath(path, fixedpath, 0)) {
-            ret = fopen(fixedpath, mode);
+            ret = plat_fopen(fixedpath, mode);
         }
     }
 #endif // not windows

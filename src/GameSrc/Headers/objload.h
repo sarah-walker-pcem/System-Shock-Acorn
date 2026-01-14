@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "objprop.h"
 #include "objapp.h"
 
-#pragma pack(push,2)
+////#pragma pack(push,2)
 
 #define NUM_OBJECT_BIT_LEN ((NUM_OBJECT + 7) >> 3)
 
@@ -67,6 +67,6 @@ extern grs_bitmap *bitmaps_2d[NUM_OBJECT];
 extern grs_bitmap *bitmaps_3d[NUM_OBJECT];
 #endif
 
-#pragma pack(pop)
+//#pragma pack(pop)
 
 #endif // __OBJLOAD_H

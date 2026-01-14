@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // ¥¥¥Note:  The mouse position will always be returned in *local* coordinates,
 // that is, local to the main game window.
 
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "error.h"
 #include "mouse.h"
@@ -649,7 +649,7 @@ uint32_t mouse_get_time(void) {
 // For Mac version:  Use Mac routines to get mouse position and state.
 
 static void ReadMouseState(mouse_state *pMouseState) {
-    int mouse_x;
+/*    int mouse_x;
     int mouse_y;
 
     uint mouse_state = SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -663,7 +663,11 @@ static void ReadMouseState(mouse_state *pMouseState) {
 
     if (mouse_state & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
         pMouseState->butts = 2;
-    }
+    }*/
+
+    pMouseState->x = 160;
+    pMouseState->y = 100;
+    pMouseState->butts = 0;
 
     /*	union REGS regs;
 

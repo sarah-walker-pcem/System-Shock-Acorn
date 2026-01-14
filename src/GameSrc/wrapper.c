@@ -260,7 +260,7 @@ typedef struct {
     uchar blocksiz;
 
     char currstring;
-    char index;
+    int8_t index;
     uchar modified;
 
     uchar editable;
@@ -1576,6 +1576,7 @@ void screenmode_change(uchar new_mode) {
     mode_id = new_mode;
     QUESTVAR_SET(SCREENMODE_QVAR, new_mode);
     change_mode_func(0, 0, _current_loop);
+    Plat_InitVideo();
     wrapper_screenmode_hack = TRUE;
 
     INFO("Changed screen mode to %i\n", mode_id);

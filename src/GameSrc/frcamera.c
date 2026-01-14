@@ -191,7 +191,7 @@ void fr_camera_slewone(cams *cam, int which, int how) {
 void fr_camera_getobjloc(int oid, fix *store) {
     Obj *cobj = &objs[oid];
 
-    if (cobj->info.ph != -1) {
+    if (cobj->info.ph != (char)-1) {
         get_phys_info(cobj->info.ph, store, 6);
     } else {
         store[0] = cobj->loc.x << 8;

@@ -121,7 +121,7 @@ typedef struct _softs {
 } softs_data;
 
 // FIXME pragma
-#pragma pack(push,1)
+//#pragma pack(push,1)
 
 typedef struct _Player {
     // Static Game Data
@@ -278,7 +278,7 @@ typedef struct _Player {
     uchar pad[9];
 } Player;
 
-#pragma pack(pop)
+//#pragma pack(pop)
 
 #define PLAYER_OBJ     (player_struct.rep)
 #define PLAYER_BIN_X   OBJ_LOC_BIN_X(objs[PLAYER_OBJ].loc)

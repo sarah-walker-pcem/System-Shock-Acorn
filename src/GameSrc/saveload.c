@@ -85,7 +85,7 @@ const ResourceFormat *format_from_idx_version(int index, uint32_t version) {
         LevelVersion12Format : LevelVersion11Format;
     assert(index <= MAX_LEVEL_INDEX);
     return &table[index];
-}    
+}
 
 // Extract a level resource. Uses the version to look up the appropriate formats
 // table and the index to figure out the actual format.
@@ -796,7 +796,7 @@ errtype load_current_map(Id id_num) {
     }
 
 #define REF_READ(id,index,x) extract_level_resource(id, index, map_version, &(x))
-    
+
     //  object version number!
     REF_READ(id_num, idx++, object_version);
     // SwapLongBytes(&version);                        // Mac
@@ -969,7 +969,7 @@ errtype load_current_map(Id id_num) {
           SwapShortBytes(&objDrugs[i].prev);
        }*/
 
-    // Read in and convert the hardwares. 
+    // Read in and convert the hardwares.
     REF_READ(id_num, idx++, objHardwares);
 
     // Read in and convert the softwares.
@@ -1319,7 +1319,7 @@ obj_out:
         }
 
         // sleep the object (this may become "settle" the object)
-        if (objs[oid].info.ph != -1) {
+        if ((int8_t)objs[oid].info.ph != (char)-1) {
             cit_sleeper_callback(objs[oid].info.ph);
             edms_delete_go();
         }

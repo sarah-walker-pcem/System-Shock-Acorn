@@ -244,7 +244,7 @@ errtype ai_critter_hit(ObjSpecID osid, short damage, uchar tranq, uchar stun) {
         objCritters[osid].urgency = 0;
         objCritters[osid].sidestep = 0;
         apply_gravity_to_one_object(oid, STANDARD_GRAVITY);
-        if (objs[oid].info.ph != -1) {
+        if (objs[oid].info.ph != (char)-1) {
             EDMS_control_robot(objs[oid].info.ph, fix_make(0, 0x0010), 0, 0);
         }
         if (get_crit_posture(osid) >= ATTACKING_CRITTER_POSTURE) {

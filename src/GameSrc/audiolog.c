@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //	Mac version by Ken Cobb,  2/9/95
 
 #include <stdio.h>
-#include <SDL.h>
+//#include <SDL.h>
 
 #include "MacTune.h"
 #include "afile.h"
@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ALOG_MUSIC_DUCK 0.7
 
-extern SDL_AudioStream *cutscene_audiostream; // see cutsloop.c
+extern void /*SDL_AudioStream*/ *cutscene_audiostream; // see cutsloop.c
 
 static uint8_t *audiolog_audiobuffer = NULL;
 static uint8_t *audiolog_audiobuffer_pos = NULL;
@@ -61,9 +61,15 @@ extern uchar curr_vol_lev;
 extern uchar curr_alog_vol;
 extern char which_lang;
 
-extern SDL_AudioDeviceID device;
+extern /*SDL_AudioDeviceID*/int device;
+#define AUDIO_U8 0
+#define AUDIO_S16SYS 0
+
+static int audiolog_ch = 0;
 
 errtype audiolog_init(void) { return OK; }
+
+extern int snd_sample_play_raw(int snd_ref, int len, uchar *smp, int freq);
 
 errtype audiolog_play(int email_id) {
     int new_alog_fn;
@@ -114,10 +120,11 @@ errtype audiolog_play(int email_id) {
 
     DEBUG("%s: Playing email", __FUNCTION__);
 
-    SDL_PauseAudioDevice(device, 1);
-    SDL_Delay(1);
+//    SDL_PauseAudioDevice(device, 1);
+//    SDL_Delay(1);
 
-    cutscene_audiostream = SDL_NewAudioStream(AUDIO_U8, 1, fix_int(palog->a.sampleRate), AUDIO_S16SYS, 2, 48000);
+//    cutscene_audiostream = 1; //SDL_NewAudioStream(AUDIO_U8, 1, fix_int(palog->a.sampleRate), AUDIO_S16SYS, 2, 48000);
+    audiolog_ch = snd_sample_play_raw(0, audiolog_audiobuffer_size * MOVIE_DEFAULT_BLOCKLEN, audiolog_audiobuffer, fix_int(palog->a.sampleRate));
 
     audiolog_audiobuffer_pos = audiolog_audiobuffer;
 
@@ -149,11 +156,23 @@ void audiolog_stop(void) {
         MacTuneUpdateVolume();
     }
 
-    if (cutscene_audiostream != NULL) {
-        SDL_PauseAudioDevice(device, 1);
-        SDL_Delay(1);
+    if (audiolog_ch)
+    {
+        snd_end_sample(audiolog_ch);
+        audiolog_ch = 0;
+    }
 
-        SDL_FreeAudioStream(cutscene_audiostream);
+    if (audiolog_audiobuffer)
+    {
+        free(audiolog_audiobuffer);
+        audiolog_audiobuffer = NULL;
+    }
+/*
+    if (cutscene_audiostream != NULL) {
+//        SDL_PauseAudioDevice(device, 1);
+//        SDL_Delay(1);
+
+//        SDL_FreeAudioStream(cutscene_audiostream);
         cutscene_audiostream = NULL;
 
         if (audiolog_audiobuffer) {
@@ -161,7 +180,7 @@ void audiolog_stop(void) {
             audiolog_audiobuffer = NULL;
         }
     }
-
+*/
     curr_alog = -1;
 
     if (secret_pending_hack) {
@@ -176,8 +195,18 @@ void audiolog_stop(void) {
 }
 
 errtype audiolog_loop_callback(void) {
+    if (audiolog_ch) {
+        if (!snd_sample_playing(audiolog_ch)) {
+            audiolog_ch = 0;
+            audiolog_stop();
+        }
+    }
+}
+
+#if 0
+errtype audiolog_loop_callback(void) {
     if (cutscene_audiostream) {
-        SDL_PauseAudioDevice(device, 0);
+//        SDL_PauseAudioDevice(device, 0);
 
         if (audiolog_audiobuffer_size > 0) {
             int i, vol = curr_alog_vol * 127 / 100; // convert from 0-100 to 0-127
@@ -185,17 +214,18 @@ errtype audiolog_loop_callback(void) {
             for (i = 0; i < MOVIE_DEFAULT_BLOCKLEN; i++)
                 audiolog_audiobuffer_pos[i] = 128 + ((int)audiolog_audiobuffer_pos[i] - 128) * vol / 128;
 
-            SDL_AudioStreamPut(cutscene_audiostream, audiolog_audiobuffer_pos, MOVIE_DEFAULT_BLOCKLEN);
+ //           SDL_AudioStreamPut(cutscene_audiostream, audiolog_audiobuffer_pos, MOVIE_DEFAULT_BLOCKLEN);
             audiolog_audiobuffer_pos += MOVIE_DEFAULT_BLOCKLEN;
             audiolog_audiobuffer_size--;
         }
 
-        if (SDL_AudioStreamAvailable(cutscene_audiostream) == 0)
-            audiolog_stop();
+//        if (SDL_AudioStreamAvailable(cutscene_audiostream) == 0)
+//            audiolog_stop();
     }
 
     return OK;
 }
+#endif
 
 //-------------------------------------------------------------
 // if email_id is -1, returns whether or not anything is playing

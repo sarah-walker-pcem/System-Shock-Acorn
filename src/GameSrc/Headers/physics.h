@@ -39,7 +39,7 @@ typedef fix Physvec[6];
 
 #define MAX_PHYS_HANDLE MAX_OBJ
 
-#define CHECK_OBJ_PH(oid) ((objs[oid].info.ph != -1) && (objs[oid].info.ph <= MAX_PHYS_HANDLE))
+#define CHECK_OBJ_PH(oid) ((objs[oid].info.ph != (char)-1) && (objs[oid].info.ph <= MAX_PHYS_HANDLE))
 
 #define CSLOPE_SET(a, b, c)    \
     {                          \

@@ -1377,10 +1377,21 @@ errtype ObjClassInit(ObjID id, ObjSpecID specid, int subclass) {
 // ## INSERT NEW CLASS HERE
 // ## INSERT NEW SUBCLASS HERE
 
+static short read_short(uchar *p)
+{
+    return p[0] | (p[1] << 8);
+}
+
+static long read_long(uchar *p)
+{
+    return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+
 errtype obj_load_properties() {
     // Handle   res;
     int version, i, j;
     char *cp;
+    char *cp_start;
 
     // extern void SwapLongBytes(void *pval4);
     // extern void SwapShortBytes(void *pval2);
@@ -1399,11 +1410,12 @@ errtype obj_load_properties() {
     rewind(f);
 
     cp = (char *)malloc((len + 1) * sizeof(char));
+    cp_start = cp;
     fread(cp, len, 1, f);
     fclose(f);
 
     // Check to make sure we have the right version.
-    version = *(int *)cp;
+    version = (int)read_long(cp); //*(int *)cp;
     cp += 4;
     // SwapLongBytes(&version);
     if (version != OBJPROP_VERSION_NUMBER) {
@@ -1416,8 +1428,12 @@ errtype obj_load_properties() {
     //-------------
     // GUNS
     //-------------
-    memmove(GunProps, cp, sizeof(GunProps));
-    cp += sizeof(GunProps);
+    for (i = 0; i < NUM_GUN; i++) {
+      GunProps[i].fire_rate = *cp++;
+      GunProps[i].useable_ammo_type = *cp++;
+    }
+//    memmove(GunProps, cp, sizeof(GunProps));
+//    cp += sizeof(GunProps);
 
     // BlockMoveData(cp, PistolGunProps, NUM_PISTOL_GUN);     Dummies
     cp += NUM_PISTOL_GUN;
@@ -1430,21 +1446,21 @@ errtype obj_load_properties() {
     for (i = 0; i < NUM_SPECIAL_GUN; i++) {
         SpecialGunProp *sgp = &SpecialGunProps[i];
 
-        sgp->damage_modifier = *(short *)cp;
+        sgp->damage_modifier = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&sgp->damage_modifier);
         sgp->offense_value = *cp++;
-        sgp->damage_type = *(int *)cp;
+        sgp->damage_type = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&sgp->damage_type);
         sgp->penetration = *cp++;
 
         sgp->speed = *cp++;
-        sgp->proj_triple = *(int *)cp;
+        sgp->proj_triple = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&sgp->proj_triple);
         sgp->attack_mass = *cp++;
-        sgp->attack_speed = *(short *)cp;
+        sgp->attack_speed = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&sgp->attack_speed);
     }
@@ -1453,11 +1469,11 @@ errtype obj_load_properties() {
     for (i = 0; i < NUM_HANDTOHAND_GUN; i++) {
         HandtohandGunProp *hhgp = &HandtohandGunProps[i];
 
-        hhgp->damage_modifier = *(short *)cp;
+        hhgp->damage_modifier = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&hhgp->damage_modifier);
         hhgp->offense_value = *cp++;
-        hhgp->damage_type = *(int *)cp;
+        hhgp->damage_type = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&hhgp->damage_type);
         hhgp->penetration = *cp++;
@@ -1465,7 +1481,7 @@ errtype obj_load_properties() {
         hhgp->energy_use = *cp++;
         hhgp->attack_mass = *cp++;
         hhgp->attack_range = *cp++;
-        hhgp->attack_speed = *(short *)cp;
+        hhgp->attack_speed = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&hhgp->attack_speed);
     }
@@ -1473,11 +1489,11 @@ errtype obj_load_properties() {
     for (i = 0; i < NUM_BEAM_GUN; i++) {
         BeamGunProp *bgp = &BeamGunProps[i];
 
-        bgp->damage_modifier = *(short *)cp;
+        bgp->damage_modifier = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&bgp->damage_modifier);
         bgp->offense_value = *cp++;
-        bgp->damage_type = *(int *)cp;
+        bgp->damage_type = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&bgp->damage_type);
         bgp->penetration = *cp++;
@@ -1485,7 +1501,7 @@ errtype obj_load_properties() {
         bgp->max_charge = *cp++;
         bgp->attack_mass = *cp++;
         bgp->attack_range = *cp++;
-        bgp->attack_speed = *(short *)cp;
+        bgp->attack_speed = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&bgp->attack_speed);
     }
@@ -1493,22 +1509,22 @@ errtype obj_load_properties() {
     for (i = 0; i < NUM_BEAMPROJ_GUN; i++) {
         BeamprojGunProp *bgp = &BeamprojGunProps[i];
 
-        bgp->damage_modifier = *(short *)cp;
+        bgp->damage_modifier = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&bgp->damage_modifier);
         bgp->offense_value = *cp++;
-        bgp->damage_type = *(int *)cp;
+        bgp->damage_type = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&bgp->damage_type);
         bgp->penetration = *cp++;
 
         bgp->max_charge = *cp++;
         bgp->attack_mass = *cp++;
-        bgp->attack_speed = *(short *)cp;
+        bgp->attack_speed = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&bgp->attack_speed);
         bgp->speed = *cp++;
-        bgp->proj_triple = *(int *)cp;
+        bgp->proj_triple = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&bgp->proj_triple);
         bgp->flags = *cp++;
@@ -1520,18 +1536,18 @@ errtype obj_load_properties() {
     for (i = 0; i < NUM_AMMO; i++) {
         AmmoProp *ap = &AmmoProps[i];
 
-        ap->damage_modifier = *(short *)cp;
+        ap->damage_modifier = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&ap->damage_modifier);
         ap->offense_value = *cp++;
-        ap->damage_type = *(int *)cp;
+        ap->damage_type = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&ap->damage_type);
         ap->penetration = *cp++;
 
         ap->cartridge_size = *cp++;
         ap->bullet_mass = *cp++;
-        ap->bullet_speed = *(short *)cp;
+        ap->bullet_speed = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&ap->bullet_speed);
         ap->range = *cp++;
@@ -1582,8 +1598,12 @@ errtype obj_load_properties() {
         }
     }
 
-    memmove(SlowPhysicsProps, cp, sizeof(SlowPhysicsProps));
-    cp += sizeof(SlowPhysicsProps);
+    for (i = 0; i < NUM_SLOW_PHYSICS; i++) {
+        memmove(SlowPhysicsProps[i].vcolors, cp, 6);
+        cp += 6;
+    }
+    //memmove(SlowPhysicsProps, cp, sizeof(SlowPhysicsProps));
+    //cp += sizeof(SlowPhysicsProps);
 
     // BlockMoveData(cp, CameraPhysicsProps, NUM_CAMERA_PHYSICS);                       Dummies
     cp += NUM_CAMERA_PHYSICS;
@@ -1595,11 +1615,11 @@ errtype obj_load_properties() {
     for (i = 0; i < NUM_GRENADE; i++) {
         GrenadeProp *gp = &GrenadeProps[i];
 
-        gp->damage_modifier = *(short *)cp;
+        gp->damage_modifier = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&gp->damage_modifier);
         gp->offense_value = *cp++;
-        gp->damage_type = *(int *)cp;
+        gp->damage_type = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&gp->damage_type);
         gp->penetration = *cp++;
@@ -1609,7 +1629,7 @@ errtype obj_load_properties() {
         gp->radius_change = *cp++;
         gp->damage_change = *cp++;
         gp->attack_mass = *cp++;
-        gp->flags = *(short *)cp;
+        gp->flags = read_short(cp); //*(short *)cp;
         cp += 2;
         // SwapShortBytes(&gp->flags);
     }
@@ -1694,8 +1714,12 @@ errtype obj_load_properties() {
     cp += NUM_GEAR_SMALLSTUFF;
     cp += NUM_CARDS_SMALLSTUFF;
 
-    memmove(CyberSmallstuffProps, cp, sizeof(CyberSmallstuffProps));
-    cp += sizeof(CyberSmallstuffProps);
+    for (i = 0; i < NUM_CYBER_SMALLSTUFF; i++) {
+        memmove(CyberSmallstuffProps[i].vcolors, cp, 6);
+        cp += 6;
+    }
+//    memmove(CyberSmallstuffProps, cp, sizeof(CyberSmallstuffProps));
+    //cp += sizeof(CyberSmallstuffProps);
 
     cp += NUM_ONTHEWALL_SMALLSTUFF;
 
@@ -1737,8 +1761,12 @@ errtype obj_load_properties() {
     //  ANIMATING OBJECTS
     //----------------
 
-    memmove(AnimatingProps, cp, sizeof(AnimatingProps));
-    cp += sizeof(AnimatingProps);
+    for (i = 0; i < NUM_ANIMATING; i++) {
+        AnimatingProps[i].speed = *cp++;
+        AnimatingProps[i].flags = *cp++;
+    }
+    //memmove(AnimatingProps, cp, sizeof(AnimatingProps));
+    //cp += sizeof(AnimatingProps);
 
     cp += NUM_OBJECT_ANIMATING;
     cp += NUM_TRANSITORY_ANIMATING;
@@ -1781,31 +1809,31 @@ errtype obj_load_properties() {
 
         crp->intelligence = *cp++;
         for (j = 0; j < NUM_ALTERNATE_ATTACKS; j++) {
-            crp->attacks[j].damage_type = *(int *)cp;
+            crp->attacks[j].damage_type = (int)read_long(cp); //*(int *)cp;
             cp += 4;
             // SwapLongBytes(&crp->attacks[j].damage_type);
-            crp->attacks[j].damage_modifier = *(short *)cp;
+            crp->attacks[j].damage_modifier = read_short(cp); //*(short *)cp;
             cp += 2;
             // SwapShortBytes(&crp->attacks[j].damage_modifier);
             crp->attacks[j].offense_value = *cp++;
             crp->attacks[j].penetration = *cp++;
             crp->attacks[j].attack_mass = *cp++;
-            crp->attacks[j].attack_velocity = *(short *)cp;
+            crp->attacks[j].attack_velocity = read_short(cp); //*(short *)cp;
             cp += 2;
             // SwapShortBytes(&crp->attacks[j].attack_velocity);
             crp->attacks[j].accuracy = *cp++;
             crp->attacks[j].att_range = *cp++;
-            crp->attacks[j].speed = *(int *)cp;
+            crp->attacks[j].speed = (int)read_long(cp); //*(int *)cp;
             cp += 4;
             // SwapLongBytes(&crp->attacks[j].speed);
-            crp->attacks[j].slow_proj = *(int *)cp;
+            crp->attacks[j].slow_proj = (int)read_long(cp); //*(int *)cp;
             cp += 4;
             // SwapLongBytes(&crp->attacks[j].slow_proj);
         }
         crp->perception = *cp++;
         crp->defense = *cp++;
         crp->proj_offset = *cp++;
-        crp->flags = *(int *)cp;
+        crp->flags = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&crp->flags);
         crp->mirror = *cp++;
@@ -1817,7 +1845,7 @@ errtype obj_load_properties() {
         crp->hurt_sound = *cp++;
         crp->death_sound = *cp++;
         crp->notice_sound = *cp++;
-        crp->corpse = *(int *)cp;
+        crp->corpse = (int)read_long(cp); //*(int *)cp;
         cp += 4;
         // SwapLongBytes(&crp->corpse);
         crp->views = *cp++;
@@ -1830,11 +1858,19 @@ errtype obj_load_properties() {
 
     cp += NUM_MUTANT_CRITTER;
 
-    memmove(RobotCritterProps, cp, sizeof(RobotCritterProps));
-    cp += sizeof(RobotCritterProps);
+    for (i = 0; i < NUM_ROBOT_CRITTER; i++) {
+        RobotCritterProps[i].backup_weapon = *cp++;
+        RobotCritterProps[i].metal_thickness = *cp++;
+    }
+    //memmove(RobotCritterProps, cp, sizeof(RobotCritterProps));
+    //cp += sizeof(RobotCritterProps);
 
-    memmove(CyborgCritterProps, cp, sizeof(CyborgCritterProps));
-    cp += sizeof(CyborgCritterProps);
+    for (i = 0; i < NUM_CYBORG_CRITTER; i++) {
+        CyborgCritterProps[i].shield_energy = read_short(cp);
+        cp += 2;
+    }
+    //memmove(CyborgCritterProps, cp, sizeof(CyborgCritterProps));
+    //cp += sizeof(CyborgCritterProps);
     for (i = 0; i < NUM_CYBORG_CRITTER; i++)
         // SwapShortBytes(&CyborgCritterProps[i].shield_energy);
 
@@ -1856,8 +1892,32 @@ errtype obj_load_properties() {
     for (i = 0; i < NUM_OBJECT; i++) {
         ObjProp *op = &ObjProps[i];
 
-        memmove(op, cp, 27);
-        cp += 27;
+//        memmove(op, cp, 27);
+//        cp += 27;
+
+        op->mass = read_long(cp);
+        cp += 4;
+        op->hit_points = read_short(cp);
+        cp += 2;
+        op->armor = *cp++;
+        op->render_type = *cp++;
+        op->physics_model = *cp++;
+        op->hardness = *cp++;
+        op->pep = *cp++;
+        op->physics_xr = *cp++;
+        op->physics_y = *cp++;
+        op->physics_z = *cp++;
+        op->resistances = read_long(cp);
+        cp += 4;
+        op->defense_value = *cp++;
+        op->toughness = *cp++;
+        op->flags = read_short(cp);
+        cp += 2;
+        op->mfd_id = read_short(cp);
+        cp += 2;
+        op->bitmap_3d = read_short(cp);
+        cp += 2;
+        op->destroy_effect = *cp++;
     }
 
     // HUnlock(res);
@@ -1955,7 +2015,7 @@ ObjID physics_handle_to_id(physics_handle p) {
     {
        Robot temp_robot;
 
-       if (objp->info.ph != -1)
+       if (objp->info.ph != (char)-1)
        {
           EDMS_get_robot_parameters(objp->info.ph, &temp_robot);
           *rad = temp_robot.size;

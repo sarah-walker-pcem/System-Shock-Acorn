@@ -31,8 +31,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //--------------------
 //  Globals
 //--------------------
-SDL_Surface *drawSurface;
-SDL_Surface *offscreenDrawSurface;
+RO_Surface *drawSurface;
+RO_Surface *offscreenDrawSurface;
+//SDL_Surface *drawSurface;
+//SDL_Surface *offscreenDrawSurface;
+
+static RO_Surface *ro_surface_alloc(int width, int height)
+{
+	RO_Surface *surf = malloc(sizeof(RO_Surface));
+
+	surf->pixels = malloc(width * height);
+
+	surf->w = width;
+	surf->h = height;
+
+	return surf;
+}
+
+void ro_surface_free(RO_Surface *surf)
+{
+	free(surf->pixels);
+	free(surf);
+}
 
 void ChangeScreenSize(int width, int height) {
     if (gScreenWide == width && gScreenHigh == height)
@@ -40,7 +60,7 @@ void ChangeScreenSize(int width, int height) {
 
     INFO("ChangeScreenSize");
 
-    SDL_RenderClear(renderer);
+/*    SDL_RenderClear(renderer);
 
     extern bool fullscreenActive;
     SDL_SetWindowFullscreen(window, fullscreenActive ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
@@ -48,7 +68,7 @@ void ChangeScreenSize(int width, int height) {
     SDL_SetWindowSize(window, width, height);
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-    SDL_RenderSetLogicalSize(renderer, width, height);
+    SDL_RenderSetLogicalSize(renderer, width, height);*/
 
     SetupOffscreenBitmaps(width, height);
 
@@ -63,19 +83,23 @@ void SetupOffscreenBitmaps(int width, int height) {
     DEBUG("SetupOffscreenBitmaps %i %i", width, height);
 
     if (drawSurface != NULL) {
-        SDL_FreeSurface(drawSurface);
+	ro_surface_free(drawSurface);
+//        SDL_FreeSurface(drawSurface);
     }
     if (offscreenDrawSurface != NULL) {
-        SDL_FreeSurface(offscreenDrawSurface);
+	ro_surface_free(offscreenDrawSurface);
+//        SDL_FreeSurface(offscreenDrawSurface);
     }
 
-    drawSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+//    drawSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+    drawSurface = ro_surface_alloc(width, height);
     if (!drawSurface) {
         ERROR("SDL: Failed to create draw surface");
         return;
     }
 
-    offscreenDrawSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+//    offscreenDrawSurface = SDL_CreateRGBSurface(0, width, height, 8, 0, 0, 0, 0);
+    offscreenDrawSurface = ro_surface_alloc(width, height);
     if (!offscreenDrawSurface) {
         ERROR("SDL: Failed to create offscreen draw surface");
         return;

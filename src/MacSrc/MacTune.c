@@ -259,7 +259,7 @@ void MacTuneStartCurrentTheme(void) {
     soon.
 
     }*/
-
+#if 0
     int track = 1 + current_request[0].pieceID;
     if (track >= 0 && track < NumTracks) {
         int i = 0;
@@ -270,6 +270,7 @@ void MacTuneStartCurrentTheme(void) {
             StartTrack(i, track);
         }
     }
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -393,4 +394,4 @@ void MacTunePrimeTimer(void) {
     //  so just queue up the next tune at queue time.
 }
 
-void MacTuneUpdateVolume(void) { UpdateVolumeXMI(); }
+void MacTuneUpdateVolume(void) { /*UpdateVolumeXMI();*/ }

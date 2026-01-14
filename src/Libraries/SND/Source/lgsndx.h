@@ -28,7 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __LGSNDX_H
 #define __LGSNDX_H
 
-#include <SDL_mixer.h>
+//#include <SDL_mixer.h>
+#include <stdint.h>
+typedef uint8_t Uint8;
 
 //#include <QuickTimeComponents.h>
 //#include <Sound.h>

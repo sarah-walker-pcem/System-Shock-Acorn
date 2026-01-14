@@ -540,7 +540,7 @@ errtype increment_anim(ulong num_units) {
             if (asp == 0) {
                 asp = 1;
             } else {
-                if ((post == MOVING_CRITTER_POSTURE) && (objs[id].info.ph != -1)) {
+                if ((post == MOVING_CRITTER_POSTURE) && (objs[id].info.ph != (char)-1)) {
                     State s;
                     fix pd;
 #ifdef USE_PHYS_STATE

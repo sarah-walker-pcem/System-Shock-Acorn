@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef TICKCOUNT_H_
 #define TICKCOUNT_H_
 
-#include <SDL.h>
+//#include <SDL.h>
 #include <stdlib.h>
 
 // http://mirror.informatimago.com/next/developer.apple.com/documentation/mac/Toolbox/Toolbox-80.html

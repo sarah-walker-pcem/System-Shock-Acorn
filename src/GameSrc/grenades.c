@@ -122,7 +122,7 @@ ObjID explosion_ray_cast_attack(ObjID gren_id, ObjID target, ObjLoc *gren_loc, f
     if (floor_height >= (gren_loc->z - 2))
         source.z += fix_from_obj_height_val(4);
 
-    if (objs[target].info.ph != -1) {
+    if (objs[target].info.ph != (char)-1) {
         State new_state;
         get_phys_state(objs[target].info.ph, &new_state, target);
         dest.x = new_state.X;

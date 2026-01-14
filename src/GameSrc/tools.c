@@ -27,8 +27,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string.h>
 #include <ctype.h>
-#include <SDL.h>
+//#include <SDL.h>
+#include <stdint.h>
+typedef uint32_t Uint32;
 
+#include "platform.h"
 #include "criterr.h"
 #include "gr2ss.h"
 #include "tools.h"
@@ -755,7 +758,7 @@ void zoom_rect(LGRect *start, LGRect *end)
   ZoomEnable = TRUE;
   ZoomStart = *start;
   ZoomEnd = *end;
-  ZoomTicks = SDL_GetTicks();
+  ZoomTicks = Plat_GetTicks();
 }
 
 //called just before and after SDLDraw() in mainloop()
@@ -765,7 +768,7 @@ void ZoomDrawProc(int erase)
 
   if (!erase)
   {
-    ZoomI = SDL_GetTicks() - ZoomTicks;
+    ZoomI = Plat_GetTicks() - ZoomTicks;
     if (ZoomI >= ZOOM_MS) {ZoomEnable = 0; return;}
   }
 

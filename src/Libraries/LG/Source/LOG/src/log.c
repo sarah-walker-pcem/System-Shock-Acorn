@@ -100,6 +100,7 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
   struct tm *lt = localtime(&t);
 
   /* Log to stderr */
+  #if 0
   if (!L.quiet) {
     va_list args;
     char buf[16];
@@ -116,6 +117,7 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     va_end(args);
     fprintf(stderr, "\n");
   }
+  #endif
 
   /* Log to file */
   if (L.fp) {

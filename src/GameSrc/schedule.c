@@ -194,7 +194,8 @@ void height_event_handler(Schedule *s, SchedEvent *ev) {
     HeightSchedEvent hse = *(HeightSchedEvent *)ev;
     short x, y;
     LGRect bounds;
-    char ht, sign = (hse.steps_remaining > 0) ? 1 : -1;
+    char ht;
+    int8_t sign = (hse.steps_remaining > 0) ? 1 : -1;
 
     // has someone else claimed this square?
     if (h_sems[hse.semaphor].key != hse.key) {

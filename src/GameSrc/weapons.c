@@ -229,7 +229,7 @@ ObjID do_wall_hit(Combat_Pt *hit_point, Combat_Pt pt, int triple, short mouse_x,
             id = OBJ_NULL;
         //      else if (ObjProps[OPNUM(target)].render_type!=1) // don't do this if the object isn't a 3d model
         //      else if(objs[id].class==CLASS_CRITTER) // let edms raycast deal with hitting critters
-        else if (objs[id].info.ph >= 0) // physics object can be dealt with the edms raycast system
+        else if ((int8_t)objs[id].info.ph >= 0) // physics object can be dealt with the edms raycast system
             id = OBJ_NULL;
     }
     if (id == OBJ_NULL) {
@@ -858,7 +858,7 @@ char weapon_combat_fxs[] = {
 };
 
 ObjID damage_sound_id;
-char damage_sound_fx = -1;
+int8_t damage_sound_fx = -1;
 
 #define CYBER_FIRE_WAIT 60
 #define MIN_AUTO_SHOT 3

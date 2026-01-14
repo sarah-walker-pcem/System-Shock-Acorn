@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <string.h>
-#include <SDL.h>
+//#include <SDL.h>
 
 // TODO: extract this into a compatibility header
 #ifdef _MSC_VER
@@ -489,6 +489,7 @@ int WaitForKey(ulong ticks) {
             else
                 track = 1 + CreditsTune;
 
+#if 0
             if (track >= 0 && track < NumTracks) {
                 //        int volume = (int)curr_vol_lev * 127 / 100; //convert from 0-100 to 0-127
                 StartTrack(i, track);
@@ -496,6 +497,7 @@ int WaitForKey(ulong ticks) {
                 if (!WonGame_ShowStats)
                     CreditsTune = (CreditsTune + 1) % 8;
             }
+#endif
         }
 
         pump_events();
@@ -1365,11 +1367,13 @@ void setup_loop(void) {
     // loop title music
     int i = 0;
     if (music_on && !IsPlaying(i)) {
+#if 0
         int track = 0;
         if (track >= 0 && track < NumTracks) {
             //      int volume = (int)curr_vol_lev * 127 / 100; //convert from 0-100 to 0-127
             StartTrack(i, track);
         }
+#endif
     }
 
     if (last_setup_mode != setup_mode) {

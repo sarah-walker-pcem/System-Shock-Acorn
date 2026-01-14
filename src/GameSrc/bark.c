@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cit2d.h"
 #include "audiolog.h"
 #include "gr2ss.h"
+#include "sfxlist.h"
 
 // ============================================================
 //                   MFD BARK

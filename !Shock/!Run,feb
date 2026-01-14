@@ -1,0 +1,3 @@
+Set SystemShock$Dir <Obey$Dir>
+WimpSlot -max 25344K -min 25344K
+Run <SystemShock$Dir>.!RunImage

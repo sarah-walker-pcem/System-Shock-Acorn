@@ -142,11 +142,11 @@ extern char gour_flag; // gour flag for actual polygon drawer
 #define n_ops 40
     void *opcode_table[n_ops] = {
         do_eof,        do_jnorm,     do_lnres,     do_multires,   do_polyres,    do_setcolor, do_sortnorm,
-        do_debug,      do_setshade,  do_goursurf,  do_x_rel,      do_y_rel,      do_z_rel,    do_xy_rel,
-        do_xz_rel,     do_yz_rel,    do_icall_p,   do_icall_b,    do_icall_h,    0,           do_sfcal,
-        do_defres,     do_defres_i,  do_getparms,  do_getparms_i, do_gour_p,     do_gour_vc,  do_getvcolor,
-        do_getvscolor, do_rgbshades, do_draw_mode, do_getpcolor,  do_getpscolor, do_scaleres, do_vpnt_p,
-        do_vpnt_v,     do_setuv,     do_uvlist,    do_tmap_op,    do_dbg};
+        do_debug,      do_setshade,  do_goursurf,  do_x_rel,      do_y_rel,      do_z_rel,    do_xy_rel,        //7
+        do_xz_rel,     do_yz_rel,    do_icall_p,   do_icall_b,    do_icall_h,    0,           do_sfcal,         //e
+        do_defres,     do_defres_i,  do_getparms,  do_getparms_i, do_gour_p,     do_gour_vc,  do_getvcolor,     //15
+        do_getvscolor, do_rgbshades, do_draw_mode, do_getpcolor,  do_getpscolor, do_scaleres, do_vpnt_p,        //1c
+        do_vpnt_v,     do_setuv,     do_uvlist,    do_tmap_op,    do_dbg};                                      //23
 
 #define N_RES_POINTS 1000
 #define PARM_DATA_SIZE 4 * 100
@@ -163,6 +163,7 @@ extern char gour_flag; // gour flag for actual polygon drawer
 #define STEREO_DIST_LIM = 0x2000
 
 g3s_point *resbuf[N_RES_POINTS];
+g3s_point resbuf_[N_RES_POINTS];
 g3s_point *poly_buf[100];
 
 // clang-format off
@@ -194,6 +195,25 @@ char _itrp_check_flg = 0;
 
 // MLA not used, - uchar 	*struct_ptr;
 
+// ARM helpers, unaligned reads make strongarm cry
+static short read_short(uchar *p)
+{
+    return p[0] | (p[1] << 8);
+}
+static unsigned short read_ushort(uchar *p)
+{
+    return p[0] | (p[1] << 8);
+}
+
+static long read_long(uchar *p)
+{
+    return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+static unsigned long read_ulong(uchar *p)
+{
+    return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+
 // c callable context setting routines
 
 // takes ptr to object
@@ -219,7 +239,7 @@ void g3_interpret_object(ubyte *object_ptr, ...) {
     LG_memset(resbuf, 0, N_RES_POINTS * 4);
 
     // scale view vector for scale
-    scale = *(short *)(object_ptr - 2);
+    scale = /**(short *)*/read_short(object_ptr - 2);
     if (scale) {
         if (scale > 0) {
             _view_position.gX >>= scale;
@@ -266,7 +286,7 @@ void g3_interpret_object(ubyte *object_ptr, ...) {
 // interpret the object
 void interpreter_loop(uchar *object) {
     do {
-        object = ((uchar * (*)(uchar *)) opcode_table[*(short *)object])(object);
+        object = ((uchar * (*)(uchar *)) opcode_table[/**(short *)*/read_short(object)])(object);
     } while (object);
 }
 
@@ -282,24 +302,38 @@ uchar *do_eof(uchar *opcode) // and return extra level
 // v=viewer coords-p
 // if (n*v)<0 then branch to lbl
 uchar *do_jnorm(uchar *opcode) {
-    if (g3_check_normal_facing((g3s_vector *)(opcode + 16), (g3s_vector *)(opcode + 4)))
+    g3s_vector a, b;
+    memcpy(&a, opcode+16, sizeof(g3s_vector));
+    memcpy(&b, opcode+4,  sizeof(g3s_vector));
+    //if (g3_check_normal_facing((g3s_vector *)(opcode + 16), (g3s_vector *)(opcode + 4)))
+    if (g3_check_normal_facing(&a, &b))
         return opcode + 28; // surface is visible. continue
     else
-        return opcode + (*(short *)(opcode + 2)); // surface not visible
+        return opcode + (/**(short *)*/read_short(opcode + 2)); // surface not visible
 }
 
 // lnres pnt0,pnt1
 uchar *do_lnres(uchar *opcode) {
-    g3_draw_line(resbuf[*(unsigned short *)(opcode + 2)], resbuf[*(unsigned short *)(opcode + 4)]);
+    g3_draw_line(resbuf[/**(unsigned short *)*/read_ushort(opcode + 2)], resbuf[/**(unsigned short *)*/read_ushort(opcode + 4)]);
     return opcode + 6;
 }
 
+static g3s_vector _temp_vec_buffer[1000];
 uchar *do_multires(uchar *opcode) {
     short count;
 
-    count = *(short *)(opcode + 2);
+    count = /**(short *)*/read_short(opcode + 2);
 
-    g3_transform_list(count, (g3s_phandle *)(resbuf + (*(short *)(opcode + 4))), (g3s_vector *)(opcode + 6));
+    if (count > 1000)
+    {
+        printf("  count > 1000!\n");
+        exit(-1);
+    }
+    memcpy(_temp_vec_buffer, opcode+6, sizeof(g3s_vector) * count);
+
+    //g3_transform_list(count, (g3s_phandle *)(resbuf + (/**(short *)*/read_short(opcode + 4))), (g3s_vector *)(opcode + 6));
+
+    g3_transform_list(count, (g3s_phandle *)(resbuf + (/**(short *)*/read_short(opcode + 4))), _temp_vec_buffer);
     return opcode + 6 + (count * 12);
 }
 
@@ -337,40 +371,51 @@ uchar *do_scaleres(uchar *opcode) {
 // these put the address of an old point in the interpreter respnt array
 // note they will get freed when the interpreter punts
 uchar *do_vpnt_p(uchar *opcode) {
-    resbuf[*(short *)(opcode + 4)] = (g3s_point *)(*(long *)(parm_data + (*(unsigned short *)(opcode + 2))));
+    resbuf[/**(short *)*/read_short(opcode + 4)] = (g3s_point *)(/**(long *)*/read_long(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 2))));
     return opcode + 6;
 }
 
 uchar *do_vpnt_v(uchar *opcode) {
-    resbuf[*(short *)(opcode + 4)] = _vpoint_tab[(*(unsigned short *)(opcode + 2)) >> 2];
+    resbuf[/**(short *)*/read_short(opcode + 4)] = _vpoint_tab[(/**(unsigned short *)*/read_ushort(opcode + 2)) >> 2];
     return opcode + 6;
 }
 
 uchar *do_defres(uchar *opcode) {
-    resbuf[*(unsigned short *)(opcode + 2)] = g3_transform_point((g3s_vector *)(opcode + 4));
+    g3s_vector a;
+
+    memcpy(&a, opcode+4, sizeof(g3s_vector));
+
+    int idx = read_ushort(opcode + 2);
+    resbuf[/**(unsigned short *)*//*read_ushort(opcode + 2)*/idx] = g3_transform_point(&a/*(g3s_vector *)(opcode + 4)*/);
     return opcode + 16;
 }
 
 uchar *do_defres_i(uchar *opcode) {
     g3s_phandle temphand;
+    g3s_vector a;
 
-    temphand = g3_transform_point((g3s_vector *)(opcode + 4));
-    resbuf[*(unsigned short *)(opcode + 2)] = temphand;
+    memcpy(&a, opcode+4, sizeof(g3s_vector));
 
-    temphand->i = *(short *)(opcode + 16);
+    temphand = g3_transform_point(&a/*(g3s_vector *)(opcode + 4)*/);
+    resbuf[/**(unsigned short *)*/read_ushort(opcode + 2)] = temphand;
+
+    temphand->i = /**(short *)*/read_short(opcode + 16);
     temphand->p3_flags |= PF_I;
 
     return opcode + 18;
 }
 
+static g3s_point poly_buf_real[100];
+
 // polyres cnt,pnt0,pnt1,...
 uchar *do_polyres(uchar *opcode) {
     int count, count2;
 
-    count2 = count = *(unsigned short *)(opcode + 2);
+    count2 = count = /**(unsigned short *)*/read_ushort(opcode + 2);
     opcode += 4;
     while (--count >= 0) {
-        poly_buf[count] = resbuf[*(unsigned short *)(opcode + (count << 1))];
+        memcpy(&poly_buf_real[count], resbuf[/**(unsigned short *)*/read_ushort(opcode + (count << 1))], sizeof (g3s_point));
+        poly_buf[count] = &poly_buf_real[count]; //resbuf[/**(unsigned short *)*/read_ushort(opcode + (count << 1))];
     }
 
     opcode += count2 << 1;
@@ -385,31 +430,37 @@ uchar *do_polyres(uchar *opcode) {
 }
 
 uchar *do_sortnorm(uchar *opcode) {
-    if (g3_check_normal_facing((g3s_vector *)(opcode + 14), (g3s_vector *)(opcode + 2))) {
-        interpreter_loop(opcode + (*(short *)(opcode + 26)));
-        interpreter_loop(opcode + (*(short *)(opcode + 28)));
+    g3s_vector a, b;
+
+    memcpy(&a, opcode+14, sizeof(g3s_vector));
+    memcpy(&b, opcode+2, sizeof(g3s_vector));
+
+    //if (g3_check_normal_facing((g3s_vector *)(opcode + 14), (g3s_vector *)(opcode + 2))) {
+    if (g3_check_normal_facing(&a, &b)) {
+        interpreter_loop(opcode + (/**(short *)*/read_short(opcode + 26)));
+        interpreter_loop(opcode + (/**(short *)*/read_short(opcode + 28)));
     } else {
-        interpreter_loop(opcode + (*(short *)(opcode + 28)));
-        interpreter_loop(opcode + (*(short *)(opcode + 26)));
+        interpreter_loop(opcode + (/**(short *)*/read_short(opcode + 28)));
+        interpreter_loop(opcode + (/**(short *)*/read_short(opcode + 26)));
     }
 
     return opcode + 30;
 }
 
 uchar *do_goursurf(uchar *opcode) {
-    gouraud_base = (*(short *)(opcode + 2)) << 8;
+    gouraud_base = (/**(short *)*/read_short(opcode + 2)) << 8;
     _itrp_gour_flg = 2;
     return opcode + 4;
 }
 
 uchar *do_gour_p(uchar *opcode) {
-    gouraud_base = parm_data[(*(short *)(opcode + 2))] << 8;
+    gouraud_base = parm_data[(/**(short *)*/read_short(opcode + 2))] << 8;
     _itrp_gour_flg = 2;
     return opcode + 4;
 }
 
 uchar *do_gour_vc(uchar *opcode) {
-    gouraud_base = ((long)_vcolor_tab[*(unsigned short *)(opcode + 2)]) << 8;
+    gouraud_base = ((long)read_long(&_vcolor_tab[/**(unsigned short *)*/read_ushort(opcode + 2)])) << 8;
     _itrp_gour_flg = 2;
     return opcode + 4;
 }
@@ -417,7 +468,7 @@ uchar *do_gour_vc(uchar *opcode) {
 uchar *do_draw_mode(uchar *opcode) {
     short flags;
 
-    flags = *(short *)(opcode + 2);
+    flags = /**(short *)*/read_short(opcode + 2);
     _itrp_wire_flg = flags >> 8;
     flags &= 0x00ff;
     flags <<= 1;
@@ -433,12 +484,12 @@ uchar *do_setshade(uchar *opcode) {
     uchar *new_opcode;
     g3s_phandle temphand;
 
-    i = *(unsigned short *)(opcode + 2); // get number of shades
+    i = /**(unsigned short *)*/read_ushort(opcode + 2); // get number of shades
     new_opcode = opcode + 4 + (i << 2);
 
     while (--i >= 0) {
-        temphand = resbuf[*(unsigned short *)(opcode + 4 + (i << 2))]; // get point handle
-        temphand->i = *(short *)(opcode + 6 + (i << 2));
+        temphand = resbuf[/**(unsigned short *)*/read_ushort(opcode + 4 + (i << 2))]; // get point handle
+        temphand->i = /**(short *)*/read_short(opcode + 6 + (i << 2));
         temphand->p3_flags |= PF_I;
     }
 
@@ -450,11 +501,11 @@ uchar *do_rgbshades(uchar *opcode) {
     int i;
     g3s_phandle temphand;
 
-    i = *(unsigned short *)(opcode + 2); // get number of shades
+    i = /**(unsigned short *)*/read_ushort(opcode + 2); // get number of shades
     new_opcode = opcode + 4;
     while (--i >= 0) {
-        temphand = resbuf[*(unsigned short *)new_opcode]; // get point handle
-        temphand->rgb = *(long *)(new_opcode + 2);
+        temphand = resbuf[/**(unsigned short *)*/read_ushort(new_opcode)]; // get point handle
+        temphand->rgb = /**(long *)*/read_long(new_opcode + 2);
         temphand->p3_flags |= PF_RGB;
         new_opcode += 10;
     }
@@ -464,9 +515,9 @@ uchar *do_rgbshades(uchar *opcode) {
 uchar *do_setuv(uchar *opcode) {
     g3s_phandle temphand;
 
-    temphand = resbuf[*(unsigned short *)(opcode + 2)]; // get point handle
-    temphand->uv.u = (*(unsigned long *)(opcode + 4)) >> 8;
-    temphand->uv.v = (*(unsigned long *)(opcode + 8)) >> 8;
+    temphand = resbuf[/**(unsigned short *)*/read_ushort(opcode + 2)]; // get point handle
+    temphand->uv.u = (/**(unsigned long *)*/read_ulong(opcode + 4)) >> 8;
+    temphand->uv.v = (/**(unsigned long *)*/read_ulong(opcode + 8)) >> 8;
     temphand->p3_flags |= PF_U | PF_V;
 
     return opcode + 12;
@@ -476,12 +527,12 @@ uchar *do_uvlist(uchar *opcode) {
     int i;
     g3s_phandle temphand;
 
-    i = *(unsigned short *)(opcode + 2); // get number of shades
+    i = /**(unsigned short *)*/read_ushort(opcode + 2); // get number of shades
     opcode += 4;
     while (--i >= 0) {
-        temphand = resbuf[*(unsigned short *)opcode]; // get point handle
-        temphand->uv.u = (*(unsigned long *)(opcode + 2)) >> 8;
-        temphand->uv.v = (*(unsigned long *)(opcode + 6)) >> 8;
+        temphand = resbuf[/**(unsigned short *)*/read_ushort(opcode)]; // get point handle
+        temphand->uv.u = (/**(unsigned long *)*/read_ulong(opcode + 2)) >> 8;
+        temphand->uv.v = (/**(unsigned long *)*/read_ulong(opcode + 6)) >> 8;
         temphand->p3_flags |= PF_U | PF_V;
         opcode += 10;
     }
@@ -491,19 +542,19 @@ uchar *do_uvlist(uchar *opcode) {
 
 // should we be hacking _itrp_gour_flg?
 uchar *do_setcolor(uchar *opcode) {
-    gr_set_fcolor(*(unsigned short *)(opcode + 2));
+    gr_set_fcolor(/**(unsigned short *)*/read_ushort(opcode + 2));
     _itrp_gour_flg = 0;
     return opcode + 4;
 }
 
 uchar *do_getvcolor(uchar *opcode) {
-    gr_set_fcolor(_vcolor_tab[*(unsigned short *)(opcode + 2)]);
+    gr_set_fcolor(_vcolor_tab[/**(unsigned short *)*/read_ushort(opcode + 2)]);
     _itrp_gour_flg = 0;
     return opcode + 4;
 }
 
 uchar *do_getpcolor(uchar *opcode) {
-    gr_set_fcolor(*(unsigned short *)(parm_data + (*(unsigned short *)(opcode + 2))));
+    gr_set_fcolor(/**(unsigned short *)*/read_ushort(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 2))));
     _itrp_gour_flg = 0;
     return opcode + 4;
 }
@@ -511,8 +562,8 @@ uchar *do_getpcolor(uchar *opcode) {
 uchar *do_getvscolor(uchar *opcode) {
     short temp;
 
-    temp = (byte)_vcolor_tab[*(unsigned short *)(opcode + 2)];
-    temp |= (*(short *)(opcode + 4)) << 8;
+    temp = (byte)_vcolor_tab[/**(unsigned short *)*/read_ushort(opcode + 2)];
+    temp |= (/**(short *)*/read_short(opcode + 4)) << 8;
     gr_set_fcolor(gr_get_light_tab()[temp]);
     return opcode + 6;
 }
@@ -520,72 +571,87 @@ uchar *do_getvscolor(uchar *opcode) {
 uchar *do_getpscolor(uchar *opcode) {
     short temp;
 
-    temp = (unsigned short)parm_data[*(unsigned short *)(opcode + 2)];
+    temp = (unsigned short)parm_data[/**(unsigned short *)*/read_ushort(opcode + 2)];
     temp &= 0x00ff;
-    temp |= (*(short *)(opcode + 4)) << 8;
+    temp |= (/**(short *)*/read_short(opcode + 4)) << 8;
     gr_set_fcolor(gr_get_light_tab()[temp]);
     return opcode + 6;
 }
 
 uchar *do_x_rel(uchar *opcode) {
-    resbuf[*(short *)(opcode + 2)] = g3_copy_add_delta_x(resbuf[*(short *)(opcode + 4)], *(fix *)(opcode + 6));
+    resbuf[/**(short *)*/read_short(opcode + 2)] = g3_copy_add_delta_x(resbuf[/**(short *)*/read_short(opcode + 4)], /**(fix *)*/read_long(opcode + 6));
     return opcode + 10;
 }
 
 uchar *do_y_rel(uchar *opcode) {
-    resbuf[*(short *)(opcode + 2)] = g3_copy_add_delta_y(resbuf[*(short *)(opcode + 4)], *(fix *)(opcode + 6));
+    resbuf[/**(short *)*/read_short(opcode + 2)] = g3_copy_add_delta_y(resbuf[/**(short *)*/read_short(opcode + 4)], /**(fix *)*/read_long(opcode + 6));
     return opcode + 10;
 }
 
 uchar *do_z_rel(uchar *opcode) {
-    resbuf[*(short *)(opcode + 2)] = g3_copy_add_delta_z(resbuf[*(short *)(opcode + 4)], *(fix *)(opcode + 6));
+    resbuf[/**(short *)*/read_short(opcode + 2)] = g3_copy_add_delta_z(resbuf[/**(short *)*/read_short(opcode + 4)], /**(fix *)*/read_long(opcode + 6));
     return opcode + 10;
 }
 
 uchar *do_xy_rel(uchar *opcode) {
-    resbuf[*(short *)(opcode + 2)] =
-        g3_copy_add_delta_xy(resbuf[*(short *)(opcode + 4)], *(fix *)(opcode + 6), *(fix *)(opcode + 10));
+    resbuf[/**(short *)*/read_short(opcode + 2)] =
+        g3_copy_add_delta_xy(resbuf[/**(short *)*/read_short(opcode + 4)], /**(fix *)*/read_long(opcode + 6), /**(fix *)*/read_long(opcode + 10));
     return opcode + 14;
 }
 
 uchar *do_xz_rel(uchar *opcode) {
-    resbuf[*(short *)(opcode + 2)] =
-        g3_copy_add_delta_xz(resbuf[*(short *)(opcode + 4)], *(fix *)(opcode + 6), *(fix *)(opcode + 10));
+    resbuf[/**(short *)*/read_short(opcode + 2)] =
+        g3_copy_add_delta_xz(resbuf[/**(short *)*/read_short(opcode + 4)], /**(fix *)*/read_long(opcode + 6), /**(fix *)*/read_long(opcode + 10));
     return opcode + 14;
 }
 
 uchar *do_yz_rel(uchar *opcode) {
-    resbuf[*(short *)(opcode + 2)] =
-        g3_copy_add_delta_yz(resbuf[*(short *)(opcode + 4)], *(fix *)(opcode + 6), *(fix *)(opcode + 10));
+    resbuf[/**(short *)*/read_short(opcode + 2)] =
+        g3_copy_add_delta_yz(resbuf[/**(short *)*/read_short(opcode + 4)], /**(fix *)*/read_long(opcode + 6), /**(fix *)*/read_long(opcode + 10));
     return opcode + 14;
 }
 
 uchar *do_icall_p(uchar *opcode) {
-    g3_start_object_angles_x((g3s_vector *)(opcode + 6), *(fixang *)(parm_data + (*(unsigned short *)(opcode + 18))));
-    interpreter_loop((uchar *)(*(long *)(opcode + 2)));
+    g3s_vector a;
+
+    memcpy(&a, opcode+6, sizeof(g3s_vector));
+
+    //g3_start_object_angles_x((g3s_vector *)(opcode + 6), *(fixang *)(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 18))));
+    g3_start_object_angles_x(&a, (fixang)read_short(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 18))));
+    interpreter_loop((uchar *)(/**(long *)*/read_long(opcode + 2)));
     g3_end_object();
 
     return opcode + 20;
 }
 
 uchar *do_icall_h(uchar *opcode) {
-    g3_start_object_angles_y((g3s_vector *)(opcode + 6), *(fixang *)(parm_data + (*(unsigned short *)(opcode + 18))));
-    interpreter_loop((uchar *)(*(long *)(opcode + 2)));
+    g3s_vector a;
+
+    memcpy(&a, opcode+6, sizeof(g3s_vector));
+
+    //g3_start_object_angles_y((g3s_vector *)(opcode + 6), *(fixang *)(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 18))));
+    g3_start_object_angles_y(&a, (fixang)read_short(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 18))));
+    interpreter_loop((uchar *)(/**(long *)*/read_long(opcode + 2)));
     g3_end_object();
 
     return opcode + 20;
 }
 
 uchar *do_icall_b(uchar *opcode) {
-    g3_start_object_angles_z((g3s_vector *)(opcode + 6), *(fixang *)(parm_data + (*(unsigned short *)(opcode + 18))));
-    interpreter_loop((uchar *)(*(long *)(opcode + 2)));
+    g3s_vector a;
+
+    memcpy(&a, opcode+6, sizeof(g3s_vector));
+
+    //g3_start_object_angles_z((g3s_vector *)(opcode + 6), *(fixang *)(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 18))));
+    g3_start_object_angles_z(&a, (fixang)read_short(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 18))));
+    interpreter_loop((uchar *)(/**(long *)*/read_long(opcode + 2)));
     g3_end_object();
 
     return opcode + 20;
 }
 
 uchar *do_sfcal(uchar *opcode) {
-    interpreter_loop(opcode + (*(unsigned short *)(opcode + 2)));
+    interpreter_loop(opcode + (/**(unsigned short *)*/read_ushort(opcode + 2)));
     return opcode + 4;
 }
 
@@ -594,11 +660,12 @@ uchar *do_getparms(uchar *opcode) {
     long *src, *dest;
     int count;
 
-    dest = (long *)(parm_data + (*(unsigned short *)(opcode + 2)));
-    src = (long *)(parm_ptr + (*(unsigned short *)(opcode + 4)));
-    count = *(unsigned short *)(opcode + 6);
-    while (count-- > 0)
-        *(dest++) = *(src)++;
+    dest = (long *)(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 2)));
+    src = (long *)(parm_ptr + (/**(unsigned short *)*/read_ushort(opcode + 4)));
+    count = /**(unsigned short *)*/read_ushort(opcode + 6);
+    memcpy(dest, src, count);
+//    while (count-- > 0)
+//        *(dest++) = *(src)++;
 
     return opcode + 8;
 }
@@ -608,11 +675,12 @@ uchar *do_getparms_i(uchar *opcode) {
     long *src, *dest;
     int count;
 
-    dest = *(long **)(parm_data + (*(unsigned short *)(opcode + 2)));
-    src = (long *)(parm_ptr + (*(unsigned short *)(opcode + 4)));
-    count = *(unsigned short *)(opcode + 6);
-    while (count-- > 0)
-        *(dest++) = *(src)++;
+    dest = /**(long **)*/(long *)read_long(parm_data + (/**(unsigned short *)*/read_ushort(opcode + 2)));
+    src = (long *)(parm_ptr + (/**(unsigned short *)*/read_ushort(opcode + 4)));
+    count = /**(unsigned short *)*/read_ushort(opcode + 6);
+    memcpy(dest, src, count);
+//    while (count-- > 0)
+//        *(dest++) = *(src)++;
 
     return opcode + 8;
 }
@@ -628,16 +696,16 @@ uchar *do_tmap_op(uchar *opcode) {
     int count, count2;
     short temp;
 
-    count2 = count = *(unsigned short *)(opcode + 4);
+    count2 = count = /**(unsigned short *)*/read_ushort(opcode + 4);
     count--;
     do {
-        temp = *(short *)(opcode + 6 + (count << 1));
+        temp = /**(short *)*/read_short(opcode + 6 + (count << 1));
 
         poly_buf[count] = resbuf[temp];
     } while (--count >= 0);
 
     ((int (*)(int, g3s_phandle *, grs_bitmap *)) * g3_tmap_func)(count2, poly_buf,
-                                                                 _vtext_tab[*(unsigned short *)(opcode + 2)]);
+                                                                 _vtext_tab[/**(unsigned short *)*/read_ushort(opcode + 2)]);
 
     return opcode + 6 + (count2 * 2);
 }
@@ -649,19 +717,33 @@ uchar *do_tmap_op(uchar *opcode) {
 // if (n*v)<0 then branch to lbl
 // does lit version of jnorm, for flat lighting
 uchar *do_ljnorm(uchar *opcode) {
-    if (g3_check_normal_facing((g3s_vector *)(opcode + 16), (g3s_vector *)(opcode + 4))) {
-        g3_light_obj((g3s_phandle)(opcode + 4), (g3s_phandle)(opcode + 16));
+    g3s_vector a, b;
+
+    memcpy(&a, opcode+16, sizeof(g3s_vector));
+    memcpy(&b, opcode+4, sizeof(g3s_vector));
+
+    //if (g3_check_normal_facing((g3s_vector *)(opcode + 16), (g3s_vector *)(opcode + 4))) {
+    if (g3_check_normal_facing(&a, &b)) {
+        g3s_point ap, bp;
+        memcpy(&ap, opcode+4, sizeof(g3s_point));
+        memcpy(&bp, opcode+16, sizeof(g3s_point));
+        g3_light_obj(&ap, &bp); //(g3s_phandle)(opcode + 4), (g3s_phandle)(opcode + 16));
         return opcode + 28;
     } else
-        return opcode + (*(short *)(opcode + 2)); // surface not visible
+        return opcode + (/**(short *)*/read_short(opcode + 2)); // surface not visible
 }
 
 // light diff not near norm
 uchar *do_ldjnorm(uchar *opcode) {
     fix temp;
+    g3s_vector a, b;
 
-    if (g3_check_normal_facing((g3s_vector *)(opcode + 16), (g3s_vector *)(opcode + 4))) {
-        temp = g3_vec_dotprod(&_g3d_light_vec, (g3s_vector *)(opcode + 4));
+    memcpy(&a, opcode+16, sizeof(g3s_vector));
+    memcpy(&b, opcode+4, sizeof(g3s_vector));
+
+//    if (g3_check_normal_facing((g3s_vector *)(opcode + 16), (g3s_vector *)(opcode + 4))) {
+    if (g3_check_normal_facing(&a, &b)) {
+        temp = g3_vec_dotprod(&_g3d_light_vec, &b);
         temp <<= 1;
         if (temp < 0)
             temp = 0;
@@ -673,7 +755,7 @@ uchar *do_ldjnorm(uchar *opcode) {
 
         return opcode + 28;
     } else
-        return opcode + (*(short *)(opcode + 2)); // surface not visible
+        return opcode + (/**(short *)*/read_short(opcode + 2)); // surface not visible
 }
 
 //external calls to these do-nothing functions can be safely removed
