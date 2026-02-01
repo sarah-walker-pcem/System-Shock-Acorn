@@ -82,6 +82,8 @@ void Plat_Set_Palette(Plat_Palette *palette)
 
 void Plat_InitVideo()
 {
+	const uint8_t cursor_off_string[] = {23, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 #ifdef RO_DEBUG
 	const int32_t mode_1024x768x8[] = {
 		1,
@@ -169,6 +171,9 @@ void Plat_InitVideo()
 		break;
 	}
 #endif
+
+	for (int i = 0; i < sizeof(cursor_off_string); i++)
+		_kernel_oswrch(cursor_off_string[i]);
 }
 
 void Plat_CloseVideo()
