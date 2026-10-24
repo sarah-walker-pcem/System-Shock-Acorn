@@ -1,3 +1,33 @@
+System Shock for Acorn RiscPC
+============================
+
+Based on [Shockolate](https://github.com/Interrupt/systemshock). Requires StrongARM RiscPC, currently needs 32 MB RAM and long filenames (RISC OS 4, or 3.7 with !LongFiles or similar), as well as System Shock (PC CD-ROM version) for data. Builds with GCCSDK.
+
+Licensed under GPLv3.
+
+Building
+========
+
+Fix up GCCSDK tool paths in Makefile.gccsdk, then
+```
+make -f Makefile.gccsdk
+cp \!RunImage\,ff8 \!Shock/
+```
+
+Installation
+========
+
+Create a directory `!Shock.res`. From the CD, copy the DATA directories from both CDROM.DATA and HD.DATA into `!Shock.res` (so that you have `!Shock.res.DATA.*`). System Shock should now run.
+
+Current status
+========
+ - No music
+ - Not very optimised (only 320x200 is playable on a stock StrongARM RiscPC)
+ - Largely untested
+
+
+Original Shockolate readme :
+
 Shockolate - System Shock, but cross platform!
 ============================
 Based on the source code for PowerPC released by Night Dive Studios, Incorporated.
