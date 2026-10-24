@@ -10,6 +10,9 @@ extern short mode_id;
 int screen_y = 480;
 int screen_y_div = 2;
 
+extern void video_copy_double(uint8_t *dest, uint8_t *src);
+extern void video_copy_640x480(uint8_t *dest, uint8_t *src);
+
 void Plat_Draw()
 {
 	const uint32_t vdu_variables_in[] = {148, -1};
@@ -28,11 +31,8 @@ void Plat_Draw()
 	switch (mode_id)
 	{
 		case 0:
-		for (int y = 0; y < drawSurface->h; y++)
-		{
-			memcpy(screen_addr + y*2*320, drawSurface->pixels + y*drawSurface->w, drawSurface->w);
-			memcpy(screen_addr + (y*2 + 1)*320, drawSurface->pixels + y*drawSurface->w, drawSurface->w);
-		}
+		video_copy_double(screen_addr, drawSurface->pixels);
+
 		break;
 
 		case 1:
@@ -40,9 +40,13 @@ void Plat_Draw()
 			memcpy(screen_addr + y*320, drawSurface->pixels + y*drawSurface->w, drawSurface->w);
 		break;
 
-		case 2: case 3:
+		case 2:
 		for (int y = 0; y < drawSurface->h; y++)
 			memcpy(screen_addr + y*640, drawSurface->pixels + y*drawSurface->w, drawSurface->w);
+		break;
+
+		case 3:
+		video_copy_640x480(screen_addr, drawSurface->pixels);
 		break;
 
 		case 4:
@@ -56,28 +60,11 @@ void Plat_Draw()
 
 void Plat_Set_Palette(Plat_Palette *palette)
 {
+	uint32_t ro_pal[256];
 	for (int i = 0; i < 256; i++)
-	{
-		_kernel_oswrch(19);
-		_kernel_oswrch(i);
-		_kernel_oswrch(16);
-		_kernel_oswrch(palette[i].r);
-		_kernel_oswrch(palette[i].g);
-		_kernel_oswrch(palette[i].b);
-	/*	uint8_t vdu_command[7];
+		ro_pal[i] = (palette[i].r << 8) | (palette[i].g << 16) | (palette[i].b << 24);
 
-		vdu_command[0] = 19;
-		vdu_command[1] = i;
-		vdu_command[2] = 16;
-		vdu_command[3] = palette[i].r;
-		vdu_command[4] = palette[i].g;
-		vdu_command[5] = palette[i].b;
-		vdu_command[6] = 0;
-
-		_swi(2, _IN(0), vdu_command);*/
-	}
-
-	//_swi(ColourTrans_WritePalette, _OUTR(0, 4), -1, -1, ro_pal, 0, 0);
+	_swi(ColourTrans_WritePalette, _INR(0, 4), -1, -1, ro_pal, 0, 0);
 }
 
 void Plat_InitVideo()

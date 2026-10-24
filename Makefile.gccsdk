@@ -4,11 +4,8 @@ CPP  = ~/gccsdk/cross/bin/arm-unknown-riscos-g++
 STRIP = ~/gccsdk/cross/bin/arm-unknown-riscos-strip
 ELF2AIF = ~/gccsdk/cross/bin/elf2aif
 
-#CFLAGS = -mcpu=arm710 -O3 -std=c99
-#CXXFLAGS = -mcpu=arm710 -O3
-
-CFLAGS = -mcpu=arm710 -O3 -std=c99
-CXXFLAGS = -mcpu=arm710 -O3
+CFLAGS = -march=armv3m -O3 -std=gnu99
+CXXFLAGS = -march=armv3m -O3
 
 #CXXFLAGS = -mcpu=strongarm -g3 -std=c99 -DRO_DEBUG
 
@@ -165,6 +162,7 @@ ACORNOBJ = ROEventHandler.o \
 	ROSound.o \
 	ROSound8.o \
 	ROVideo.o \
+	ROVideoCopy.o \
 	ROXmi.o
 
 LIBS = lib2d.a lib3d.a libafile.a libdstruct.a libedms.a libfix.a libfixpp.a libinput.a liblg.a libpalette.a libres.a librnd.a libui.a libvox.a
